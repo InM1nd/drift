@@ -1,6 +1,6 @@
 export type CardType = "attack" | "skill" | "power";
 
-export type Status = "corrosion" | "overdrive" | "stabilization" | "jamming" | "breach";
+export type Status = "corrosion" | "overdrive" | "stabilization" | "jamming" | "breach" | "reflect";
 
 export type Target = "enemy" | "self" | "allEnemies";
 
@@ -20,7 +20,8 @@ export type Effect =
   | { kind: "gainEnergy"; amount: Amount }
   | { kind: "applyStatus"; status: Status; stacks: Amount; target: Target; onlyIfPresent?: boolean }
   | { kind: "draw"; count: Amount }
-  | { kind: "reduceNextCardCost"; amount: number };
+  | { kind: "reduceNextCardCost"; amount: number }
+  | { kind: "discard"; count: Amount };
 
 export interface CardData {
   id: string;
@@ -33,6 +34,8 @@ export interface CardData {
   exhaust?: boolean;
   retain?: boolean;
   trigger?: Trigger;
+  /** Для trigger — условие "именно N-я карта, сыгранная за ход" (Перегрузка ядра). Без него триггер безусловный. */
+  triggerAt?: number;
   effects: Effect[];
   /** id базового Протокола, если это его «+»-версия (docs/03-cards.md, правило апгрейда). */
   upgradeOf?: string;

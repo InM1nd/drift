@@ -5,6 +5,7 @@ import { checkOutcome, createInitialCombatState, type CombatState } from "./comb
 import { runEnemyTurn } from "./enemyAi";
 import {
   endPlayerTurn as processEndOfTurn,
+  fireTriggers,
   resolveCardEffects,
   startPlayerTurn as processStartOfTurn,
 } from "./resolveEffect";
@@ -37,14 +38,21 @@ function playCard(state: CombatState, handIndex: number): void {
 
   state.player.energy -= cost;
   state.player.nextCardCostReduction = 0;
+  state.lastCardCost = cost;
   state.cardsPlayedThisTurn += 1;
-  resolveCardEffects(card, state);
+  // Power-карта с триггером (напр. Катализатор распада) регистрирует пассивку,
+  // но сама по себе в момент розыгрыша ничего не резолвит — иначе она бы ещё и
+  // мгновенно проки́вала на розыгрыше, а не только на заявленном триггере.
+  const isTriggerPower = card.type === "power" && !!card.trigger;
+  if (!isTriggerPower) resolveCardEffects(card, state);
   state.hand.splice(handIndex, 1);
   if (card.exhaust) state.exhaustPile.push(cardId);
   else state.discardPile.push(cardId);
-  if (card.type === "power" && card.trigger && !state.activePowerIds.includes(cardId)) {
+  if (card.retain) state.player.retainShield = true;
+  if (isTriggerPower && !state.activePowerIds.includes(cardId)) {
     state.activePowerIds.push(cardId);
   }
+  fireTriggers(state, "onCardPlayed");
   state.selectedHandIndex = null;
   state.targetEnemyIndex = null;
 }

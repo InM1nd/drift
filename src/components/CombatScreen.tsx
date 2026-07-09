@@ -47,12 +47,18 @@ export function CombatScreen() {
   const playerMaxHp = useRunStore((s) => s.player.maxHp);
   const combatSeed = useRunStore((s) => s.combatSeed);
   const activeCombatState = useRunStore((s) => s.activeCombatState);
+  const ownedModuleIds = useRunStore((s) => s.ownedModuleIds);
+  const carriedOverdrive = useRunStore((s) => s.carriedOverdrive);
 
   const [state, send] = useMachine(combatMachine, {
     input: {
       combat:
         activeCombatState ??
-        createInitialCombatState(playerHp, deck, node.enemyIds ?? [], combatSeed ?? Date.now(), playerMaxHp),
+        createInitialCombatState(playerHp, deck, node.enemyIds ?? [], combatSeed ?? Date.now(), {
+          playerMaxHp,
+          modules: ownedModuleIds,
+          carriedOverdrive,
+        }),
     },
   });
   const combat = state.context.combat;
@@ -65,7 +71,9 @@ export function CombatScreen() {
   }, [combat]);
 
   function handleResolved() {
-    useRunStore.getState().resolveCombat(state.value as "victory" | "defeat", combat.player.hp);
+    useRunStore
+      .getState()
+      .resolveCombat(state.value as "victory" | "defeat", combat.player.hp, combat.player.statuses.overdrive ?? 0);
   }
 
   return (

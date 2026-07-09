@@ -1,10 +1,14 @@
-import type { Amount, CardData, Effect, Status } from "../types";
+import type { Amount, CardData, Effect, Status, Trigger } from "../types";
 import type { EnemyAction } from "../types";
 import { getCardById } from "../data/cards";
 import type { CombatantState, CombatState, EnemyCombatantState } from "./combatState";
 import { checkOutcome, drawCards, pushLog } from "./combatState";
+import { nextInt } from "./rng";
 
-const TEMPORARY_STATUSES: Status[] = ["overdrive", "stabilization", "jamming", "breach"];
+// docs/02-combat.md: Форсаж/Стабилизация — «на оставшийся бой» (не тикают, живут
+// до конца боя или explicit-сброса), Помехи/Пробоина — «длительность в ходах»
+// (тикают -1/ход). Отражение — не длительность вовсе, особый случай ниже.
+const DECAYING_STATUSES: Status[] = ["jamming", "breach"];
 
 const STATUS_LABELS: Record<Status, string> = {
   corrosion: "Коррозия",
@@ -12,6 +16,7 @@ const STATUS_LABELS: Record<Status, string> = {
   stabilization: "Стабилизация",
   jamming: "Помехи",
   breach: "Пробоина",
+  reflect: "Отражение",
 };
 
 function getTargetEnemy(state: CombatState): EnemyCombatantState {
@@ -35,7 +40,7 @@ function computeAmount(amount: Amount, state: CombatState): number {
       base = state.cardsPlayedThisTurn;
       break;
     case "energySpent":
-      base = 0; // не задействовано картами Фазы 1
+      base = state.lastCardCost;
       break;
   }
   return Math.floor(base * (amount.mult ?? 1));
@@ -83,12 +88,27 @@ export function resolveCardEffects(card: CardData, state: CombatState): void {
   }
 }
 
+/**
+ * Отражающая плита (docs/03-cards.md): статус "Отражение" — не длительность,
+ * а флаг "в этот ход", поэтому спадает не декрементом, а обнулением
+ * (см. особый случай в endPlayerTurn) — обычная модель статуса-счётчика
+ * здесь не подходит, значение это урон за удар, а не число ходов.
+ */
+function reflectIfActive(state: CombatState, attacker: EnemyCombatantState): void {
+  const reflect = state.player.statuses.reflect ?? 0;
+  if (reflect <= 0) return;
+  const dealt = applyDamage(state.player, attacker, reflect);
+  pushLog(state, `Отражение: ${dealt} урона по ${attacker.name}.`);
+  checkOutcome(state);
+}
+
 export function resolveEnemyAction(action: EnemyAction, enemy: EnemyCombatantState, state: CombatState): void {
   switch (action.kind) {
     case "damage": {
       const dealt = applyDamage(enemy, state.player, action.amount);
       pushLog(state, `${enemy.name}: ${dealt} урона по Ныряльщику (HP ${state.player.hp}/${state.player.maxHp}).`);
       checkOutcome(state);
+      reflectIfActive(state, enemy);
       break;
     }
     case "block": {
@@ -116,6 +136,7 @@ export function resolveEnemyAction(action: EnemyAction, enemy: EnemyCombatantSta
         `${enemy.name}: ${dealt} урона по Ныряльщику + ${STATUS_LABELS[action.status]} +${action.stacks} (HP ${state.player.hp}/${state.player.maxHp}).`,
       );
       checkOutcome(state);
+      reflectIfActive(state, enemy);
       break;
     }
     case "damagePerCardPlayed": {
@@ -126,6 +147,7 @@ export function resolveEnemyAction(action: EnemyAction, enemy: EnemyCombatantSta
         `${enemy.name}: ${dealt} урона по Ныряльщику за ${state.cardsPlayedThisTurn} карт(ы), сыгранных в прошлый ход (HP ${state.player.hp}/${state.player.maxHp}).`,
       );
       checkOutcome(state);
+      reflectIfActive(state, enemy);
       break;
     }
   }
@@ -174,8 +196,12 @@ function applyEffect(effect: Effect, state: CombatState, attacker: CombatantStat
         pushLog(state, `${sourceName}: ${STATUS_LABELS[effect.status]} +${stacks} себе.`);
       } else {
         const enemy = getTargetEnemy(state);
-        addStatus(enemy, effect.status, stacks);
-        pushLog(state, `${sourceName}: ${STATUS_LABELS[effect.status]} +${stacks} на ${enemy.name}.`);
+        if (!effect.onlyIfPresent || (enemy.statuses[effect.status] ?? 0) > 0) {
+          addStatus(enemy, effect.status, stacks);
+          pushLog(state, `${sourceName}: ${STATUS_LABELS[effect.status]} +${stacks} на ${enemy.name}.`);
+        } else {
+          pushLog(state, `${sourceName}: на ${enemy.name} нет ${STATUS_LABELS[effect.status]} — эффект не сработал.`);
+        }
       }
       break;
     }
@@ -190,15 +216,42 @@ function applyEffect(effect: Effect, state: CombatState, attacker: CombatantStat
       pushLog(state, `${sourceName}: следующая карта дешевле на ${effect.amount}.`);
       break;
     }
+    case "discard": {
+      const count = computeAmount(effect.count, state);
+      let discarded = 0;
+      for (let i = 0; i < count && state.hand.length > 0; i++) {
+        const idx = nextInt(state.rng, state.hand.length);
+        const [cardId] = state.hand.splice(idx, 1);
+        state.discardPile.push(cardId);
+        discarded += 1;
+      }
+      pushLog(state, `${sourceName}: сброшено ${discarded} карт(ы).`);
+      break;
+    }
   }
 }
 
 /** Триггеры активных Power-карт для заданной точки (см. docs/02-combat.md). */
-export function fireTriggers(state: CombatState, point: "onTurnStart" | "onTurnEnd"): void {
+export function fireTriggers(state: CombatState, point: Trigger): void {
   for (const cardId of state.activePowerIds) {
     const card = getCardById(cardId);
-    if (card.trigger === point) resolveCardEffects(card, state);
+    if (card.trigger !== point) continue;
+    // triggerAt — условие "именно N-я карта за ход" (Перегрузка ядра); без него триггер безусловный.
+    if (card.triggerAt !== undefined && card.triggerAt !== state.cardsPlayedThisTurn) continue;
+    resolveCardEffects(card, state);
   }
+}
+
+/** Отражающая обшивка (Модуль): в конце хода нанести врагу урон = текущему Щиту игрока. */
+function applyReflectiveHullModule(state: CombatState): void {
+  if (!state.modules.includes("reflective-hull") || state.player.shield <= 0) return;
+  const enemy =
+    (state.targetEnemyIndex !== null ? state.enemies[state.targetEnemyIndex] : undefined) ??
+    aliveEnemies(state)[0];
+  if (!enemy || enemy.hp <= 0) return;
+  const dealt = applyDamage(state.player, enemy, state.player.shield);
+  pushLog(state, `Отражающая обшивка: ${dealt} урона по ${enemy.name}.`);
+  checkOutcome(state);
 }
 
 /**
@@ -209,11 +262,14 @@ export function fireTriggers(state: CombatState, point: "onTurnStart" | "onTurnE
  */
 export function endPlayerTurn(state: CombatState): void {
   const all: CombatantState[] = [state.player, ...state.enemies.filter((e) => e.hp > 0)];
+  // Нанитный резервуар (Модуль): Коррозия на врагах не тикает вниз — только урон.
+  const naniteReservoir = state.modules.includes("nanite-reservoir");
   for (const c of all) {
     const stacks = c.statuses.corrosion ?? 0;
     if (stacks > 0) {
       c.hp = Math.max(0, c.hp - stacks);
-      c.statuses.corrosion = stacks - 1;
+      const isEnemy = c !== state.player;
+      c.statuses.corrosion = isEnemy && naniteReservoir ? stacks : stacks - 1;
       const label = c === state.player ? "Ныряльщик" : (c as EnemyCombatantState).name;
       pushLog(state, `Коррозия: ${stacks} урона по ${label} (HP ${c.hp}).`);
     }
@@ -221,15 +277,19 @@ export function endPlayerTurn(state: CombatState): void {
   checkOutcome(state);
 
   for (const c of all) {
-    for (const status of TEMPORARY_STATUSES) {
+    for (const status of DECAYING_STATUSES) {
       const stacks = c.statuses[status];
       if (stacks && stacks > 0) {
         c.statuses[status] = stacks - 1 > 0 ? stacks - 1 : undefined;
       }
     }
+    // Отражение — флаг "в этот ход", не длительность в ходах: гасим целиком,
+    // а не декрементом (иначе число читалось бы как урон-за-удар минус 1).
+    if ((c.statuses.reflect ?? 0) > 0) c.statuses.reflect = undefined;
   }
 
   fireTriggers(state, "onTurnEnd");
+  applyReflectiveHullModule(state);
 
   state.discardPile.push(...state.hand);
   state.hand = [];
@@ -246,6 +306,10 @@ export function startPlayerTurn(state: CombatState, handSize: number): void {
   if (!state.player.retainShield) state.player.shield = 0;
   state.player.retainShield = false;
   state.player.energy = state.player.maxEnergy;
+  // Взломанный чип приоритета (Модуль): первая карта за ход дешевле на 1 —
+  // существующее nextCardCostReduction уже тратится на первую сыгранную карту
+  // и обнуляется (playCard), новой логики резолвера не нужно.
+  if (state.modules.includes("priority-chip")) state.player.nextCardCostReduction += 1;
   fireTriggers(state, "onTurnStart");
   drawCards(state, handSize);
 }

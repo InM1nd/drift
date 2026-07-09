@@ -6,4 +6,5 @@ export const STATUS_ICONS: Record<Status, string> = {
   stabilization: "🛡+",
   jamming: "📡",
   breach: "💥",
+  reflect: "↩",
 };

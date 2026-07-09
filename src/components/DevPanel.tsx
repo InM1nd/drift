@@ -10,7 +10,7 @@ interface DevPanelProps {
   send: (event: CombatMachineEvent) => void;
 }
 
-const STATUSES: Status[] = ["corrosion", "overdrive", "stabilization", "jamming", "breach"];
+const STATUSES: Status[] = ["corrosion", "overdrive", "stabilization", "jamming", "breach", "reflect"];
 
 export function DevPanel({ combat, send }: DevPanelProps) {
   const [open, setOpen] = useState(false);

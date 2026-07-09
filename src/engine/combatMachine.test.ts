@@ -98,4 +98,73 @@ describe("combatMachine", () => {
     expect(state.context.combat.enemies[0].enemyId).toBe("sanitation-drone");
     expect(state.context.combat.outcome).toBe("ongoing");
   });
+
+  it("Power-карта с триггером не резолвит эффект мгновенно при розыгрыше — только на заявленном триггере (регресс)", () => {
+    const combat = createInitialCombatState(70, ["decay-catalyst"], ["sanitation-drone"], 1);
+    const actor = createActor(combatMachine, { input: { combat } });
+    actor.start();
+    actor.send({ type: "DEV_SET_STATUS", who: 0, status: "corrosion", stacks: 2 });
+
+    const before = actor.getSnapshot().context.combat;
+    const index = before.hand.findIndex((id) => id === "decay-catalyst");
+    expect(index).toBeGreaterThanOrEqual(0);
+
+    actor.send({ type: "SELECT_CARD", index });
+    const afterPlay = actor.getSnapshot().context.combat;
+    expect(afterPlay.enemies[0].statuses.corrosion).toBe(2); // не сработало мгновенно
+    expect(afterPlay.activePowerIds).toContain("decay-catalyst");
+
+    actor.send({ type: "END_TURN" }); // тик коррозии (2→1) → ход врага → onTurnStart триггер (1→2)
+    const afterTurn = actor.getSnapshot().context.combat;
+    expect(afterTurn.enemies[0].statuses.corrosion).toBe(2);
+  });
+
+  it("Перегрузка ядра: onCardPlayed + triggerAt срабатывает ровно на 3-й сыгранной карте за ход", () => {
+    const combat = createInitialCombatState(
+      70,
+      ["core-overload", "strike", "strike", "strike", "strike"],
+      ["hull-turret"],
+      1,
+    );
+    const actor = createActor(combatMachine, { input: { combat } });
+    actor.start();
+
+    const hand = actor.getSnapshot().context.combat.hand;
+    const overloadIndex = hand.findIndex((id) => id === "core-overload");
+    expect(overloadIndex).toBeGreaterThanOrEqual(0);
+    actor.send({ type: "SELECT_CARD", index: overloadIndex }); // 1-я карта — без цели, регистрирует пассивку
+
+    let state = actor.getSnapshot().context.combat;
+    expect(state.activePowerIds).toContain("core-overload");
+    expect(state.player.energy).toBe(2); // 3 - 1, бонус ещё не сработал
+
+    const strikeIndex1 = state.hand.findIndex((id) => id === "strike");
+    actor.send({ type: "SELECT_CARD", index: strikeIndex1 });
+    actor.send({ type: "TARGET_ENEMY", index: 0 }); // 2-я карта
+
+    state = actor.getSnapshot().context.combat;
+    expect(state.cardsPlayedThisTurn).toBe(2);
+    expect(state.player.energy).toBe(1); // всё ещё без бонуса
+
+    const strikeIndex2 = state.hand.findIndex((id) => id === "strike");
+    actor.send({ type: "SELECT_CARD", index: strikeIndex2 });
+    actor.send({ type: "TARGET_ENEMY", index: 0 }); // 3-я карта — триггер должен сработать
+
+    state = actor.getSnapshot().context.combat;
+    expect(state.cardsPlayedThisTurn).toBe(3);
+    expect(state.player.energy).toBe(1); // 0 после траты + 1 от триггера
+  });
+
+  it("Перегрузка щитов: card.retain переживает щит через начало следующего хода", () => {
+    const combat = createInitialCombatState(70, ["shield-overload"], ["hull-turret"], 1);
+    const actor = createActor(combatMachine, { input: { combat } });
+    actor.start();
+
+    const index = actor.getSnapshot().context.combat.hand.findIndex((id) => id === "shield-overload");
+    actor.send({ type: "SELECT_CARD", index });
+    expect(actor.getSnapshot().context.combat.player.shield).toBe(12);
+
+    actor.send({ type: "END_TURN" });
+    expect(actor.getSnapshot().context.combat.player.shield).toBe(12); // не спало на начале след. хода
+  });
 });

@@ -29,6 +29,10 @@ export interface CombatState {
   rng: RngState;
   turn: number;
   cardsPlayedThisTurn: number;
+  /** Заряд, уплаченный за текущую разыгрываемую карту — читает эффект ref:"energySpent" (Всплеск мощности). */
+  lastCardCost: number;
+  /** id владеемых Модулей (docs/05-items.md) — влияют на резолвер (Milestone B). */
+  modules: string[];
   player: PlayerState;
   enemies: EnemyCombatantState[];
   hand: string[];
@@ -60,31 +64,45 @@ function enemyFromData(data: EnemyData, rng: RngState): EnemyCombatantState {
   };
 }
 
+export interface CreateCombatOptions {
+  /** HP переносится между боями (docs/02-combat.md), максимум — нет: по умолчанию равен текущему HP. */
+  playerMaxHp?: number;
+  /** id владеемых Модулей — см. CombatState.modules. */
+  modules?: string[];
+  /** Форсаж, перенесённый из прошлого боя этого захода (Модуль "Боевой рекордер"). */
+  carriedOverdrive?: number;
+}
+
 export function createInitialCombatState(
   playerHp: number,
   deckCardIds: string[],
   enemyIds: string[],
   seed: number,
-  /** HP переносится между боями (docs/02-combat.md), максимум — нет: по умолчанию равен текущему HP. */
-  playerMaxHp: number = playerHp,
+  options: CreateCombatOptions = {},
 ): CombatState {
   const rng = createRng(seed);
   const enemies = enemyIds.map((id) => enemyFromData(getEnemyById(id), rng));
   const drawPile = shuffle(rng, deckCardIds);
+  const { playerMaxHp = playerHp, modules = [], carriedOverdrive = 0 } = options;
 
   const state: CombatState = {
     rng,
     turn: 0,
     cardsPlayedThisTurn: 0,
+    lastCardCost: 0,
+    modules,
     player: {
       hp: playerHp,
       maxHp: playerMaxHp,
       shield: 0,
       retainShield: false,
-      statuses: {},
+      statuses: carriedOverdrive > 0 ? { overdrive: carriedOverdrive } : {},
       energy: PLAYER_MAX_ENERGY,
       maxEnergy: PLAYER_MAX_ENERGY,
-      nextCardCostReduction: 0,
+      // Взломанный чип приоритета (Модуль) — тот же чек, что и в startPlayerTurn
+      // (resolveEffect.ts): первый ход боя строится напрямую здесь, минуя
+      // startPlayerTurn, иначе скидка на первую карту не работала бы в ходу 1.
+      nextCardCostReduction: modules.includes("priority-chip") ? 1 : 0,
     },
     enemies,
     hand: [],

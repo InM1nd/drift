@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { CombatantState } from "./combatState";
 import { createInitialCombatState } from "./combatState";
-import { applyBlockGain, applyDamage, resolveCardEffects, resolveEnemyAction } from "./resolveEffect";
+import {
+  applyBlockGain,
+  applyDamage,
+  endPlayerTurn,
+  resolveCardEffects,
+  resolveEnemyAction,
+  startPlayerTurn,
+} from "./resolveEffect";
 
 function combatant(overrides: Partial<CombatantState> = {}): CombatantState {
   return { hp: 30, maxHp: 30, shield: 0, retainShield: false, statuses: {}, ...overrides };
@@ -84,5 +91,147 @@ describe("resolveEnemyAction — ходы Стража-гексапода (docs/
     state.hand = [];
     resolveEnemyAction({ kind: "damagePerCardPlayed", perCard: 4 }, state.enemies[0], state);
     expect(state.player.hp).toBe(58);
+  });
+});
+
+describe("applyStatus (одиночная цель) — onlyIfPresent (Токсичный клинок)", () => {
+  const toxicBlade = {
+    id: "toxic-blade",
+    name: "Токсичный клинок",
+    cost: 1,
+    type: "attack" as const,
+    tags: [],
+    description: "",
+    effects: [{ kind: "applyStatus" as const, status: "corrosion" as const, stacks: 2, target: "enemy" as const, onlyIfPresent: true }],
+  };
+
+  it("не накладывает статус, если на цели его ещё нет", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1);
+    state.targetEnemyIndex = 0;
+    resolveCardEffects(toxicBlade, state);
+    expect(state.enemies[0].statuses.corrosion ?? 0).toBe(0);
+  });
+
+  it("накладывает статус поверх уже существующего", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1);
+    state.targetEnemyIndex = 0;
+    state.enemies[0].statuses.corrosion = 1;
+    resolveCardEffects(toxicBlade, state);
+    expect(state.enemies[0].statuses.corrosion).toBe(3);
+  });
+});
+
+describe("discard — сброс карт из руки (Каскад команд)", () => {
+  it("сбрасывает запрошенное число карт", () => {
+    const state = createInitialCombatState(70, ["strike", "strike", "strike", "strike", "strike"], ["hull-turret"], 1);
+    const handBefore = state.hand.length;
+    resolveCardEffects(
+      { id: "cascade", name: "Каскад команд", cost: 1, type: "skill", tags: [], description: "", effects: [{ kind: "discard", count: 1 }] },
+      state,
+    );
+    expect(state.hand.length).toBe(handBefore - 1);
+    expect(state.discardPile.length).toBe(1);
+  });
+});
+
+describe("energySpent — Всплеск мощности", () => {
+  it("ref:energySpent читает lastCardCost (записывается playCard при розыгрыше X-карты)", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1);
+    state.targetEnemyIndex = 0;
+    state.lastCardCost = 3;
+    resolveCardEffects(
+      {
+        id: "power-surge",
+        name: "Всплеск мощности",
+        cost: "X",
+        type: "attack",
+        tags: [],
+        exhaust: true,
+        description: "",
+        effects: [{ kind: "damage", amount: { ref: "energySpent", mult: 2 }, target: "enemy" }],
+      },
+      state,
+    );
+    expect(state.enemies[0].hp).toBe(state.enemies[0].maxHp - 6);
+  });
+});
+
+describe("reflect — Отражающая плита", () => {
+  it("отражает урон атакующему при получении удара", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1);
+    state.player.statuses.reflect = 3;
+    resolveEnemyAction({ kind: "damage", amount: 5 }, state.enemies[0], state);
+    expect(state.enemies[0].hp).toBe(state.enemies[0].maxHp - 3);
+  });
+
+  it("гасится целиком в конце хода — это флаг 'в этот ход', не длительность в стеках", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1);
+    state.player.statuses.reflect = 3;
+    endPlayerTurn(state);
+    expect(state.player.statuses.reflect).toBeUndefined();
+  });
+});
+
+describe("Форсаж/Стабилизация — «на оставшийся бой», не тикают (docs/02-combat.md)", () => {
+  it("Форсаж переживает конец хода без декремента", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1);
+    state.player.statuses.overdrive = 2;
+    endPlayerTurn(state);
+    expect(state.player.statuses.overdrive).toBe(2);
+    endPlayerTurn(state);
+    expect(state.player.statuses.overdrive).toBe(2);
+  });
+
+  it("Стабилизация переживает конец хода без декремента", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1);
+    state.player.statuses.stabilization = 3;
+    endPlayerTurn(state);
+    expect(state.player.statuses.stabilization).toBe(3);
+  });
+
+  it("контраст: Помехи и Пробоина тикают вниз каждый ход (длительность в ходах)", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1);
+    state.player.statuses.jamming = 2;
+    state.enemies[0].statuses.breach = 1;
+    endPlayerTurn(state);
+    expect(state.player.statuses.jamming).toBe(1);
+    expect(state.enemies[0].statuses.breach).toBeUndefined();
+  });
+});
+
+describe("Модули — реальные хуки в бою (docs/05-items.md)", () => {
+  it("Нанитный резервуар: Коррозия на враге не уменьшается сама по себе", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1, { modules: ["nanite-reservoir"] });
+    state.enemies[0].statuses.corrosion = 3;
+    endPlayerTurn(state);
+    expect(state.enemies[0].statuses.corrosion).toBe(3); // урон нанесён, стек не упал
+    expect(state.enemies[0].hp).toBe(state.enemies[0].maxHp - 3);
+  });
+
+  it("без модуля Коррозия на враге тикает вниз как обычно", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1);
+    state.enemies[0].statuses.corrosion = 3;
+    endPlayerTurn(state);
+    expect(state.enemies[0].statuses.corrosion).toBe(2);
+  });
+
+  it("Отражающая обшивка: в конце хода наносит врагу урон = Щиту игрока", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1, { modules: ["reflective-hull"] });
+    state.player.shield = 6;
+    state.targetEnemyIndex = 0;
+    endPlayerTurn(state);
+    expect(state.enemies[0].hp).toBe(state.enemies[0].maxHp - 6);
+  });
+
+  it("Взломанный чип приоритета: скидка есть уже в ходу 1 (createInitialCombatState минует startPlayerTurn)", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1, { modules: ["priority-chip"] });
+    expect(state.player.nextCardCostReduction).toBe(1);
+  });
+
+  it("Взломанный чип приоритета: скидка снова выставляется на каждом следующем ходу", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1, { modules: ["priority-chip"] });
+    state.player.nextCardCostReduction = 0; // как будто уже потрачена на карту в ходу 1
+    startPlayerTurn(state, 5);
+    expect(state.player.nextCardCostReduction).toBe(1);
   });
 });

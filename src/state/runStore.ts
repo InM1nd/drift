@@ -5,7 +5,10 @@ import { createRng, nextInt, shuffle, type RngState } from "../engine/rng";
 import type { CombatState } from "../engine/combatState";
 import { getMapNodeById, FIRST_NODE_ID } from "../data/mapNodes";
 import { CARDS, STARTER_DECK_IDS } from "../data/cards";
+import { MODULES } from "../data/modules";
 import type { RunScreen } from "../types";
+
+const MODULE_COMBAT_RECORDER = "combat-recorder";
 
 export const RUN_SAVE_KEY = "drift-run-v1";
 const STARTING_HP = 70;
@@ -39,12 +42,18 @@ interface RunState {
   removalsUsed: number;
   rewardOffers: string[];
   shopOffers: { cardId: string; price: number }[];
+  /** id владеемых Модулей (docs/05-items.md) — пока выдаются только Стражем-элитой. */
+  ownedModuleIds: string[];
+  /** Только что полученный Модуль — для отображения на RewardScreen, сбрасывается claimReward. */
+  pendingModuleId: string | null;
+  /** Форсаж на конец последнего боя — переносится в следующий бой, только если владеешь "Боевым рекордером". */
+  carriedOverdrive: number;
 }
 
 interface RunActions {
   startNewRun: () => void;
   enterNode: () => void;
-  resolveCombat: (outcome: "victory" | "defeat", finalPlayerHp: number) => void;
+  resolveCombat: (outcome: "victory" | "defeat", finalPlayerHp: number, finalOverdrive: number) => void;
   claimReward: (cardId: string | null) => void;
   buyCardOffer: (cardId: string) => void;
   payRemoveCard: (index: number) => void;
@@ -80,6 +89,9 @@ function createInitialRunState(seed: number): RunState {
     removalsUsed: 0,
     rewardOffers: [],
     shopOffers: [],
+    ownedModuleIds: [],
+    pendingModuleId: null,
+    carriedOverdrive: 0,
   };
 }
 
@@ -123,7 +135,7 @@ export const useRunStore = create<RunStore>()(
         set({ screen: screenByType[node.type] });
       },
 
-      resolveCombat: (outcome, finalPlayerHp) => {
+      resolveCombat: (outcome, finalPlayerHp, finalOverdrive) => {
         if (outcome === "defeat") {
           set({ screen: "runEnd", runOutcome: "defeat", activeCombatState: null, combatSeed: null });
           return;
@@ -131,6 +143,8 @@ export const useRunStore = create<RunStore>()(
         const state = get();
         const node = getMapNodeById(state.currentNodeId);
         const nextPlayer = { ...state.player, hp: Math.max(0, Math.min(state.player.maxHp, finalPlayerHp)) };
+        // Боевой рекордер (Модуль): Форсаж переносится в следующий бой этого захода.
+        const carriedOverdrive = state.ownedModuleIds.includes(MODULE_COMBAT_RECORDER) ? finalOverdrive : 0;
         if (node.type === "boss") {
           set({
             screen: "runEnd",
@@ -138,6 +152,7 @@ export const useRunStore = create<RunStore>()(
             player: nextPlayer,
             activeCombatState: null,
             combatSeed: null,
+            carriedOverdrive,
           });
           return;
         }
@@ -146,6 +161,12 @@ export const useRunStore = create<RunStore>()(
         const [min, span] = node.type === "elite" ? [25, 11] : [10, 11];
         const reward = min + nextInt(rng, span);
         const rewardOffers = shuffle(rng, REWARD_POOL).slice(0, REWARD_OFFER_COUNT).map((c) => c.id);
+        // Страж (элита) даёт случайный ещё не полученный Модуль (docs/06-map.md).
+        const unownedModules = MODULES.filter((m) => !state.ownedModuleIds.includes(m.id));
+        const grantedModule =
+          node.type === "elite" && unownedModules.length > 0
+            ? unownedModules[nextInt(rng, unownedModules.length)]
+            : null;
         set({
           screen: "reward",
           player: nextPlayer,
@@ -154,12 +175,15 @@ export const useRunStore = create<RunStore>()(
           activeCombatState: null,
           combatSeed: null,
           rewardOffers,
+          carriedOverdrive,
+          ownedModuleIds: grantedModule ? [...state.ownedModuleIds, grantedModule.id] : state.ownedModuleIds,
+          pendingModuleId: grantedModule?.id ?? null,
         });
       },
 
       claimReward: (cardId) => {
         if (cardId) get().addCardToDeck(cardId);
-        set({ rewardOffers: [] });
+        set({ rewardOffers: [], pendingModuleId: null });
         get().completeNode();
       },
 
