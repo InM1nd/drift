@@ -4,11 +4,12 @@ import { get as idbGet, set as idbSet, del as idbDel } from "idb-keyval";
 import { createRng, nextInt, shuffle, type RngState } from "../engine/rng";
 import type { CombatState } from "../engine/combatState";
 import { generateMap } from "../engine/mapGenerator";
+import { rollInjectorDrop } from "../engine/lootRolls";
 import { getMapNodeById } from "../data/mapNodes";
 import { CARDS, STARTER_DECK_IDS } from "../data/cards";
 import { MODULES } from "../data/modules";
 import { INJECTORS } from "../data/injectors";
-import type { MapNodeData, RunScreen } from "../types";
+import type { MapNodeData, RunScreen, ShopOffer } from "../types";
 
 const MODULE_COMBAT_RECORDER = "combat-recorder";
 // "инвентарь ограничен (например, 3 слота)" — docs/05-items.md.
@@ -19,9 +20,14 @@ const STARTING_HP = 70;
 const STARTING_CREDITS = 99;
 const REWARD_OFFER_COUNT = 4;
 const SHOP_OFFER_COUNT = 3;
-// Терминал снабжения: Протокол ~50–75, удаление карты ~75–100 растёт с каждым разом — бейзлайн docs/08-roadmap.md.
+// Терминал снабжения: Протокол ~50–75, Модуль ~150–200, Инъектор ~20–35,
+// удаление карты ~75–100 растёт с каждым разом — бейзлайн docs/08-roadmap.md.
 const SHOP_CARD_PRICE_MIN = 50;
 const SHOP_CARD_PRICE_SPAN = 26;
+const SHOP_MODULE_PRICE_MIN = 150;
+const SHOP_MODULE_PRICE_SPAN = 51;
+const SHOP_INJECTOR_PRICE_MIN = 20;
+const SHOP_INJECTOR_PRICE_SPAN = 16;
 export const REMOVAL_BASE_PRICE = 75;
 export const REMOVAL_PRICE_STEP = 25;
 
@@ -49,7 +55,7 @@ interface RunState {
   runOutcome: "victory" | "defeat" | null;
   removalsUsed: number;
   rewardOffers: string[];
-  shopOffers: { cardId: string; price: number }[];
+  shopOffers: ShopOffer[];
   /** id владеемых Модулей (docs/05-items.md) — пока выдаются только Стражем-элитой. */
   ownedModuleIds: string[];
   /** Только что полученный Модуль — для отображения на RewardScreen, сбрасывается claimReward. */
@@ -67,7 +73,7 @@ interface RunActions {
   enterNode: () => void;
   resolveCombat: (outcome: "victory" | "defeat", finalPlayerHp: number, finalOverdrive: number) => void;
   claimReward: (cardId: string | null) => void;
-  buyCardOffer: (cardId: string) => void;
+  buyShopOffer: (offer: ShopOffer) => void;
   payRemoveCard: (index: number) => void;
   resolveSignalHack: () => void;
   skipSignal: () => void;
@@ -145,11 +151,35 @@ export const useRunStore = create<RunStore>()(
         if (node.type === "shop") {
           const rng = { ...state.rng };
           const offerCards = shuffle(rng, REWARD_POOL).slice(0, SHOP_OFFER_COUNT);
-          const shopOffers = offerCards.map((c) => ({
-            cardId: c.id,
+          const cardOffers: ShopOffer[] = offerCards.map((c) => ({
+            kind: "card",
+            id: c.id,
             price: SHOP_CARD_PRICE_MIN + nextInt(rng, SHOP_CARD_PRICE_SPAN),
           }));
-          set({ screen: "shop", rng, shopOffers });
+          // Терминал снабжения продаёт Протоколы/Модули/Инъекторы (docs/06-map.md)
+          // — по одному предложению каждого из последних двух за визит, если есть что предлагать.
+          const unownedModules = MODULES.filter((m) => !state.ownedModuleIds.includes(m.id));
+          const moduleOffers: ShopOffer[] =
+            unownedModules.length > 0
+              ? [
+                  {
+                    kind: "module",
+                    id: unownedModules[nextInt(rng, unownedModules.length)].id,
+                    price: SHOP_MODULE_PRICE_MIN + nextInt(rng, SHOP_MODULE_PRICE_SPAN),
+                  },
+                ]
+              : [];
+          const injectorOffers: ShopOffer[] =
+            state.injectorIds.length < MAX_INJECTORS
+              ? [
+                  {
+                    kind: "injector",
+                    id: INJECTORS[nextInt(rng, INJECTORS.length)].id,
+                    price: SHOP_INJECTOR_PRICE_MIN + nextInt(rng, SHOP_INJECTOR_PRICE_SPAN),
+                  },
+                ]
+              : [];
+          set({ screen: "shop", rng, shopOffers: [...cardOffers, ...moduleOffers, ...injectorOffers] });
           return;
         }
         const screenByType: Record<string, RunScreen> = { rest: "rest", signal: "event" };
@@ -188,9 +218,9 @@ export const useRunStore = create<RunStore>()(
           node.type === "elite" && unownedModules.length > 0
             ? unownedModules[nextInt(rng, unownedModules.length)]
             : null;
-        // Инъекторы "дропаются с боёв" (docs/05-items.md) — один за бой, пока есть свободный слот.
-        const grantedInjector =
-          state.injectorIds.length < MAX_INJECTORS ? INJECTORS[nextInt(rng, INJECTORS.length)] : null;
+        // Инъекторы "дропаются с боёв" (docs/05-items.md) — шанс, не гарантия
+        // (см. lootRolls.ts), и только пока есть свободный слот.
+        const grantedInjectorId = rollInjectorDrop(rng, state.injectorIds.length, MAX_INJECTORS);
         set({
           screen: "reward",
           player: nextPlayer,
@@ -202,8 +232,8 @@ export const useRunStore = create<RunStore>()(
           carriedOverdrive,
           ownedModuleIds: grantedModule ? [...state.ownedModuleIds, grantedModule.id] : state.ownedModuleIds,
           pendingModuleId: grantedModule?.id ?? null,
-          injectorIds: grantedInjector ? [...state.injectorIds, grantedInjector.id] : state.injectorIds,
-          pendingInjectorId: grantedInjector?.id ?? null,
+          injectorIds: grantedInjectorId ? [...state.injectorIds, grantedInjectorId] : state.injectorIds,
+          pendingInjectorId: grantedInjectorId,
         });
       },
 
@@ -213,12 +243,14 @@ export const useRunStore = create<RunStore>()(
         get().completeNode();
       },
 
-      buyCardOffer: (cardId) => {
+      buyShopOffer: (offer) => {
         const state = get();
-        const offer = state.shopOffers.find((o) => o.cardId === cardId);
-        if (!offer || !get().spendCredits(offer.price)) return;
-        get().addCardToDeck(cardId);
-        set({ shopOffers: state.shopOffers.filter((o) => o.cardId !== cardId) });
+        const found = state.shopOffers.find((o) => o.kind === offer.kind && o.id === offer.id);
+        if (!found || !get().spendCredits(found.price)) return;
+        if (found.kind === "card") get().addCardToDeck(found.id);
+        else if (found.kind === "module") set((s) => ({ ownedModuleIds: [...s.ownedModuleIds, found.id] }));
+        else set((s) => ({ injectorIds: [...s.injectorIds, found.id] }));
+        set((s) => ({ shopOffers: s.shopOffers.filter((o) => !(o.kind === found.kind && o.id === found.id)) }));
       },
 
       payRemoveCard: (index) => {

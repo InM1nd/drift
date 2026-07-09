@@ -11,3 +11,10 @@ export interface MapNodeData {
 }
 
 export type RunScreen = "boot" | "map" | "combat" | "reward" | "shop" | "rest" | "event" | "runEnd";
+
+/** Терминал снабжения продаёт все три типа предметов (docs/06-map.md) — kind+id вместе однозначно определяют товар. */
+export interface ShopOffer {
+  kind: "card" | "module" | "injector";
+  id: string;
+  price: number;
+}

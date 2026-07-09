@@ -3,6 +3,7 @@ import { MAX_INJECTORS, useRunStore } from "./runStore";
 import { MODULES } from "../data/modules";
 import { INJECTORS } from "../data/injectors";
 import { createInitialCombatState } from "../engine/combatState";
+import { createRng } from "../engine/rng";
 import type { MapNodeType } from "../types";
 
 /** Карта теперь генерируется за забег (Milestone B) — ids не фиксированы, ищем узел по типу. */
@@ -57,15 +58,22 @@ describe("runStore — Модули (docs/05-items.md)", () => {
 });
 
 describe("runStore — Инъекторы (docs/05-items.md)", () => {
-  it("победа над боем выдаёт случайный Инъектор, пока есть свободный слот", () => {
-    useRunStore.getState().startNewRun();
-    useRunStore.setState({ currentNodeId: nodeIdOfType("compartment") });
-    useRunStore.getState().resolveCombat("victory", 70, 0);
-
-    const state = useRunStore.getState();
-    expect(state.injectorIds.length).toBe(1);
-    expect(INJECTORS.some((i) => i.id === state.injectorIds[0])).toBe(true);
-    expect(state.pendingInjectorId).toBe(state.injectorIds[0]);
+  // Дроп теперь шанс, не гарантия (см. lootRolls.test.ts) — перебираем сиды,
+  // пока не встретим успешный, и проверяем инварианты именно на нём.
+  it("победа над боем может выдать случайный Инъектор, пока есть свободный слот", () => {
+    let granted = false;
+    for (let seed = 0; seed < 50 && !granted; seed++) {
+      useRunStore.getState().startNewRun();
+      useRunStore.setState({ currentNodeId: nodeIdOfType("compartment"), rng: createRng(seed) });
+      useRunStore.getState().resolveCombat("victory", 70, 0);
+      const state = useRunStore.getState();
+      if (state.injectorIds.length === 1) {
+        granted = true;
+        expect(INJECTORS.some((i) => i.id === state.injectorIds[0])).toBe(true);
+        expect(state.pendingInjectorId).toBe(state.injectorIds[0]);
+      }
+    }
+    expect(granted).toBe(true);
   });
 
   it("инвентарь не растёт сверх MAX_INJECTORS", () => {
@@ -89,5 +97,73 @@ describe("runStore — Инъекторы (docs/05-items.md)", () => {
     });
     useRunStore.getState().updateActiveCombat(combat);
     expect(useRunStore.getState().injectorIds).toEqual(["medgel"]);
+  });
+});
+
+describe("runStore — Терминал снабжения продаёт Модули/Инъекторы (docs/06-map.md, B2.5)", () => {
+  it("ассортимент включает Протоколы, один Модуль и один Инъектор при первом визите", () => {
+    useRunStore.getState().startNewRun();
+    useRunStore.setState({ currentNodeId: nodeIdOfType("shop") });
+    useRunStore.getState().enterNode();
+
+    const offers = useRunStore.getState().shopOffers;
+    expect(offers.filter((o) => o.kind === "card").length).toBe(3);
+    expect(offers.filter((o) => o.kind === "module").length).toBe(1);
+    expect(offers.filter((o) => o.kind === "injector").length).toBe(1);
+  });
+
+  it("покупка Модуля списывает кредиты и добавляет его в ownedModuleIds", () => {
+    useRunStore.getState().startNewRun();
+    useRunStore.setState({ currentNodeId: nodeIdOfType("shop"), credits: 500 });
+    useRunStore.getState().enterNode();
+    const offer = useRunStore.getState().shopOffers.find((o) => o.kind === "module")!;
+    const creditsBefore = useRunStore.getState().credits;
+
+    useRunStore.getState().buyShopOffer(offer);
+
+    const state = useRunStore.getState();
+    expect(state.ownedModuleIds).toContain(offer.id);
+    expect(state.credits).toBe(creditsBefore - offer.price);
+    expect(state.shopOffers.some((o) => o.kind === "module")).toBe(false);
+  });
+
+  it("покупка Инъектора добавляет его в injectorIds", () => {
+    useRunStore.getState().startNewRun();
+    useRunStore.setState({ currentNodeId: nodeIdOfType("shop"), credits: 500 });
+    useRunStore.getState().enterNode();
+    const offer = useRunStore.getState().shopOffers.find((o) => o.kind === "injector")!;
+
+    useRunStore.getState().buyShopOffer(offer);
+
+    expect(useRunStore.getState().injectorIds).toContain(offer.id);
+  });
+
+  it("без денег покупка не проходит", () => {
+    useRunStore.getState().startNewRun();
+    useRunStore.setState({ currentNodeId: nodeIdOfType("shop"), credits: 0 });
+    useRunStore.getState().enterNode();
+    const offer = useRunStore.getState().shopOffers.find((o) => o.kind === "module")!;
+
+    useRunStore.getState().buyShopOffer(offer);
+
+    expect(useRunStore.getState().ownedModuleIds).toEqual([]);
+    expect(useRunStore.getState().shopOffers.some((o) => o.kind === "module")).toBe(true);
+  });
+
+  it("если все Модули уже получены, Терминал не предлагает Модуль", () => {
+    useRunStore.getState().startNewRun();
+    useRunStore.setState({ currentNodeId: nodeIdOfType("shop"), ownedModuleIds: MODULES.map((m) => m.id) });
+    useRunStore.getState().enterNode();
+    expect(useRunStore.getState().shopOffers.some((o) => o.kind === "module")).toBe(false);
+  });
+
+  it("если инвентарь Инъекторов полон, Терминал не предлагает Инъектор", () => {
+    useRunStore.getState().startNewRun();
+    useRunStore.setState({
+      currentNodeId: nodeIdOfType("shop"),
+      injectorIds: Array(MAX_INJECTORS).fill(INJECTORS[0].id),
+    });
+    useRunStore.getState().enterNode();
+    expect(useRunStore.getState().shopOffers.some((o) => o.kind === "injector")).toBe(false);
   });
 });

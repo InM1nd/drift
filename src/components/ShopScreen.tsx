@@ -1,13 +1,22 @@
 import { useRunStore, REMOVAL_BASE_PRICE, REMOVAL_PRICE_STEP } from "../state/runStore";
 import { getCardById } from "../data/cards";
+import { getModuleById } from "../data/modules";
+import { getInjectorById } from "../data/injectors";
+import type { ShopOffer } from "../types";
 import "./ScreenLayout.css";
+
+function offerDisplay(offer: ShopOffer): { name: string; description: string } {
+  if (offer.kind === "card") return getCardById(offer.id);
+  if (offer.kind === "module") return getModuleById(offer.id);
+  return getInjectorById(offer.id);
+}
 
 export function ShopScreen() {
   const credits = useRunStore((s) => s.credits);
   const shopOffers = useRunStore((s) => s.shopOffers);
   const deck = useRunStore((s) => s.deck);
   const removalsUsed = useRunStore((s) => s.removalsUsed);
-  const buyCardOffer = useRunStore((s) => s.buyCardOffer);
+  const buyShopOffer = useRunStore((s) => s.buyShopOffer);
   const payRemoveCard = useRunStore((s) => s.payRemoveCard);
   const completeNode = useRunStore((s) => s.completeNode);
 
@@ -17,28 +26,27 @@ export function ShopScreen() {
     <div className="screen-layout">
       <h1>Терминал снабжения</h1>
       <div className="credits-bar">₡ {credits}</div>
-      <p className="screen-hint">Модули и Инъекторы появятся здесь позже (Milestone B) — пока только Протоколы.</p>
 
       <div className="shop-grid">
         {shopOffers.map((offer) => {
-          const card = getCardById(offer.cardId);
+          const { name, description } = offerDisplay(offer);
           const affordable = credits >= offer.price;
           return (
-            <div key={offer.cardId} className="shop-item">
-              <div className="card-name">{card.name}</div>
-              <div className="card-desc">{card.description}</div>
+            <div key={`${offer.kind}-${offer.id}`} className="shop-item">
+              <div className="card-name">{name}</div>
+              <div className="card-desc">{description}</div>
               <button
                 type="button"
                 className="primary-button"
                 disabled={!affordable}
-                onClick={() => buyCardOffer(offer.cardId)}
+                onClick={() => buyShopOffer(offer)}
               >
                 ₡ {offer.price}
               </button>
             </div>
           );
         })}
-        {shopOffers.length === 0 && <p className="screen-hint">Протоколы распроданы.</p>}
+        {shopOffers.length === 0 && <p className="screen-hint">Ассортимент распродан.</p>}
       </div>
 
       <p className="screen-hint">Удалить карту из колоды — ₡ {removalPrice} (растёт с каждым разом)</p>
