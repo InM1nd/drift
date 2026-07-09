@@ -18,7 +18,7 @@ export type Effect =
   | { kind: "block"; amount: Amount }
   | { kind: "heal"; amount: Amount }
   | { kind: "gainEnergy"; amount: Amount }
-  | { kind: "applyStatus"; status: Status; stacks: Amount; target: Target }
+  | { kind: "applyStatus"; status: Status; stacks: Amount; target: Target; onlyIfPresent?: boolean }
   | { kind: "draw"; count: Amount }
   | { kind: "reduceNextCardCost"; amount: number };
 

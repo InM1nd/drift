@@ -1,9 +1,11 @@
-import type { Status, Target } from "./card";
+import type { Status } from "./card";
+
+export type EnemyActionTarget = "player" | "self";
 
 export type EnemyAction =
   | { kind: "damage"; amount: number }
   | { kind: "block"; amount: number }
-  | { kind: "applyStatus"; status: Status; stacks: number; target: Target }
+  | { kind: "applyStatus"; status: Status; stacks: number; target: EnemyActionTarget }
   | { kind: "summon"; enemyId: string };
 
 export type EnemyPattern =

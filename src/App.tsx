@@ -1,13 +1,7 @@
-import "./App.css";
+import { CombatScreen } from "./components/CombatScreen";
 
 function App() {
-  return (
-    <div className="app-shell">
-      <h1>ДРЕЙФ</h1>
-      <p className="tagline">Протоколы для затонувших звездолётов</p>
-      <p className="status">Фаза 0: скаффолд готов.</p>
-    </div>
-  );
+  return <CombatScreen />;
 }
 
 export default App;
