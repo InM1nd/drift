@@ -1,0 +1,29 @@
+:root {
+  --bg: #0b0e14;
+  --ink: #e7e4d9;
+  --ink-soft: #8b94a3;
+  --accent: #d3a55a;
+  --corrosion: #6fae6a;
+
+  --sans: ui-serif, Georgia, serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+}
