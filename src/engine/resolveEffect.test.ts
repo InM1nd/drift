@@ -199,6 +199,29 @@ describe("Форсаж/Стабилизация — «на оставшийся 
   });
 });
 
+describe("doubleNextAttack — Боевой стимулятор (Инъектор)", () => {
+  it("удваивает урон следующего эффекта damage от игрока, затем сбрасывается", () => {
+    const state = createInitialCombatState(70, ["strike", "strike"], ["hull-turret"], 1);
+    state.targetEnemyIndex = 0;
+    resolveCardEffects(
+      { id: "stim", name: "Боевой стимулятор", cost: 0, type: "skill", tags: [], description: "", effects: [{ kind: "doubleNextAttack" }] },
+      state,
+    );
+    expect(state.player.doubleNextAttack).toBe(true);
+    resolveCardEffects(
+      { id: "strike", name: "Залп", cost: 1, type: "attack", tags: [], description: "", effects: [{ kind: "damage", amount: 6, target: "enemy" }] },
+      state,
+    );
+    expect(state.enemies[0].hp).toBe(state.enemies[0].maxHp - 12);
+    expect(state.player.doubleNextAttack).toBe(false);
+    resolveCardEffects(
+      { id: "strike", name: "Залп", cost: 1, type: "attack", tags: [], description: "", effects: [{ kind: "damage", amount: 6, target: "enemy" }] },
+      state,
+    );
+    expect(state.enemies[0].hp).toBe(state.enemies[0].maxHp - 18);
+  });
+});
+
 describe("Модули — реальные хуки в бою (docs/05-items.md)", () => {
   it("Нанитный резервуар: Коррозия на враге не уменьшается сама по себе", () => {
     const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1, { modules: ["nanite-reservoir"] });

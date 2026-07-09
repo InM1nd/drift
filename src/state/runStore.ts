@@ -6,9 +6,12 @@ import type { CombatState } from "../engine/combatState";
 import { getMapNodeById, FIRST_NODE_ID } from "../data/mapNodes";
 import { CARDS, STARTER_DECK_IDS } from "../data/cards";
 import { MODULES } from "../data/modules";
+import { INJECTORS } from "../data/injectors";
 import type { RunScreen } from "../types";
 
 const MODULE_COMBAT_RECORDER = "combat-recorder";
+// "инвентарь ограничен (например, 3 слота)" — docs/05-items.md.
+export const MAX_INJECTORS = 3;
 
 export const RUN_SAVE_KEY = "drift-run-v1";
 const STARTING_HP = 70;
@@ -48,6 +51,10 @@ interface RunState {
   pendingModuleId: string | null;
   /** Форсаж на конец последнего боя — переносится в следующий бой, только если владеешь "Боевым рекордером". */
   carriedOverdrive: number;
+  /** id Инъекторов в инвентаре забега (docs/05-items.md), максимум MAX_INJECTORS. */
+  injectorIds: string[];
+  /** Только что полученный Инъектор — для отображения на RewardScreen, сбрасывается claimReward. */
+  pendingInjectorId: string | null;
 }
 
 interface RunActions {
@@ -92,6 +99,8 @@ function createInitialRunState(seed: number): RunState {
     ownedModuleIds: [],
     pendingModuleId: null,
     carriedOverdrive: 0,
+    injectorIds: [],
+    pendingInjectorId: null,
   };
 }
 
@@ -167,6 +176,9 @@ export const useRunStore = create<RunStore>()(
           node.type === "elite" && unownedModules.length > 0
             ? unownedModules[nextInt(rng, unownedModules.length)]
             : null;
+        // Инъекторы "дропаются с боёв" (docs/05-items.md) — один за бой, пока есть свободный слот.
+        const grantedInjector =
+          state.injectorIds.length < MAX_INJECTORS ? INJECTORS[nextInt(rng, INJECTORS.length)] : null;
         set({
           screen: "reward",
           player: nextPlayer,
@@ -178,12 +190,14 @@ export const useRunStore = create<RunStore>()(
           carriedOverdrive,
           ownedModuleIds: grantedModule ? [...state.ownedModuleIds, grantedModule.id] : state.ownedModuleIds,
           pendingModuleId: grantedModule?.id ?? null,
+          injectorIds: grantedInjector ? [...state.injectorIds, grantedInjector.id] : state.injectorIds,
+          pendingInjectorId: grantedInjector?.id ?? null,
         });
       },
 
       claimReward: (cardId) => {
         if (cardId) get().addCardToDeck(cardId);
-        set({ rewardOffers: [], pendingModuleId: null });
+        set({ rewardOffers: [], pendingModuleId: null, pendingInjectorId: null });
         get().completeNode();
       },
 
@@ -220,7 +234,11 @@ export const useRunStore = create<RunStore>()(
 
       skipSignal: () => get().completeNode(),
 
-      updateActiveCombat: (combat) => set({ activeCombatState: combat }),
+      // injectorIds зеркалится вместе со снапшотом боя — Инъекторы расходуются
+      // внутри боя (combat.injectors), а инвентарь забега должен видеть это
+      // сразу же, иначе рестор после перезагрузки посреди боя вернул бы
+      // уже потраченный Инъектор обратно в инвентарь.
+      updateActiveCombat: (combat) => set({ activeCombatState: combat, injectorIds: combat.injectors }),
 
       addCardToDeck: (cardId) => set((state) => ({ deck: [...state.deck, cardId] })),
 

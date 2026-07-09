@@ -155,6 +155,21 @@ describe("combatMachine", () => {
     expect(state.player.energy).toBe(1); // 0 после траты + 1 от триггера
   });
 
+  it("Инъектор (нецелевой) применяется одним тапом и расходуется из инвентаря (docs/05-items.md)", () => {
+    const combat = createInitialCombatState(70, STARTER_DECK_IDS, ["hull-turret"], 123, {
+      injectorIds: ["shield-injector", "medgel"],
+    });
+    const actor = createActor(combatMachine, { input: { combat } });
+    actor.start();
+
+    actor.send({ type: "SELECT_INJECTOR", index: 0 });
+
+    const after = actor.getSnapshot().context.combat;
+    expect(after.player.shield).toBe(8);
+    expect(after.injectors).toEqual(["medgel"]);
+    expect(after.selectedInjectorIndex).toBeNull();
+  });
+
   it("Перегрузка щитов: card.retain переживает щит через начало следующего хода", () => {
     const combat = createInitialCombatState(70, ["shield-overload"], ["hull-turret"], 1);
     const actor = createActor(combatMachine, { input: { combat } });

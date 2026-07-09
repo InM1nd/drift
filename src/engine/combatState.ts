@@ -17,6 +17,8 @@ export interface PlayerState extends CombatantState {
   energy: number;
   maxEnergy: number;
   nextCardCostReduction: number;
+  /** Боевой стимулятор (Инъектор): следующий эффект урона от игрока удваивается, затем сбрасывается. */
+  doubleNextAttack: boolean;
 }
 
 export interface EnemyCombatantState extends CombatantState {
@@ -33,6 +35,8 @@ export interface CombatState {
   lastCardCost: number;
   /** id владеемых Модулей (docs/05-items.md) — влияют на резолвер (Milestone B). */
   modules: string[];
+  /** id Инъекторов в инвентаре забега (docs/05-items.md) — расходуются по одному, splice при использовании. */
+  injectors: string[];
   player: PlayerState;
   enemies: EnemyCombatantState[];
   hand: string[];
@@ -41,6 +45,8 @@ export interface CombatState {
   exhaustPile: string[];
   activePowerIds: string[];
   selectedHandIndex: number | null;
+  /** Выбранный (но ещё не применённый) Инъектор из ряда ниже руки — ждёт цели, если targeted. */
+  selectedInjectorIndex: number | null;
   targetEnemyIndex: number | null;
   log: string[];
   outcome: "ongoing" | "victory" | "defeat";
@@ -71,6 +77,8 @@ export interface CreateCombatOptions {
   modules?: string[];
   /** Форсаж, перенесённый из прошлого боя этого захода (Модуль "Боевой рекордер"). */
   carriedOverdrive?: number;
+  /** id Инъекторов в инвентаре забега — см. CombatState.injectors. */
+  injectorIds?: string[];
 }
 
 export function createInitialCombatState(
@@ -83,7 +91,7 @@ export function createInitialCombatState(
   const rng = createRng(seed);
   const enemies = enemyIds.map((id) => enemyFromData(getEnemyById(id), rng));
   const drawPile = shuffle(rng, deckCardIds);
-  const { playerMaxHp = playerHp, modules = [], carriedOverdrive = 0 } = options;
+  const { playerMaxHp = playerHp, modules = [], carriedOverdrive = 0, injectorIds = [] } = options;
 
   const state: CombatState = {
     rng,
@@ -91,6 +99,7 @@ export function createInitialCombatState(
     cardsPlayedThisTurn: 0,
     lastCardCost: 0,
     modules,
+    injectors: [...injectorIds],
     player: {
       hp: playerHp,
       maxHp: playerMaxHp,
@@ -103,6 +112,7 @@ export function createInitialCombatState(
       // (resolveEffect.ts): первый ход боя строится напрямую здесь, минуя
       // startPlayerTurn, иначе скидка на первую карту не работала бы в ходу 1.
       nextCardCostReduction: modules.includes("priority-chip") ? 1 : 0,
+      doubleNextAttack: false,
     },
     enemies,
     hand: [],
@@ -111,6 +121,7 @@ export function createInitialCombatState(
     exhaustPile: [],
     activePowerIds: [],
     selectedHandIndex: null,
+    selectedInjectorIndex: null,
     targetEnemyIndex: null,
     log: [],
     outcome: "ongoing",

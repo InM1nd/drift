@@ -1,11 +1,13 @@
 import { useRunStore } from "../state/runStore";
 import { getCardById } from "../data/cards";
 import { getModuleById } from "../data/modules";
+import { getInjectorById } from "../data/injectors";
 import "./ScreenLayout.css";
 
 export function RewardScreen() {
   const rewardOffers = useRunStore((s) => s.rewardOffers);
   const pendingModuleId = useRunStore((s) => s.pendingModuleId);
+  const pendingInjectorId = useRunStore((s) => s.pendingInjectorId);
   const claimReward = useRunStore((s) => s.claimReward);
 
   return (
@@ -15,6 +17,12 @@ export function RewardScreen() {
         <p className="screen-hint">
           Получен Модуль: <strong>{getModuleById(pendingModuleId).name}</strong> —{" "}
           {getModuleById(pendingModuleId).description}
+        </p>
+      )}
+      {pendingInjectorId && (
+        <p className="screen-hint">
+          Получен Инъектор: <strong>{getInjectorById(pendingInjectorId).name}</strong> —{" "}
+          {getInjectorById(pendingInjectorId).description}
         </p>
       )}
       <p className="screen-hint">Выбери один Протокол в колоду — или пропусти.</p>

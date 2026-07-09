@@ -21,7 +21,8 @@ export type Effect =
   | { kind: "applyStatus"; status: Status; stacks: Amount; target: Target; onlyIfPresent?: boolean }
   | { kind: "draw"; count: Amount }
   | { kind: "reduceNextCardCost"; amount: number }
-  | { kind: "discard"; count: Amount };
+  | { kind: "discard"; count: Amount }
+  | { kind: "doubleNextAttack" };
 
 export interface CardData {
   id: string;

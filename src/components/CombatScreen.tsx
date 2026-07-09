@@ -6,6 +6,7 @@ import type { CombatState, EnemyCombatantState } from "../engine/combatState";
 import { computeDamage } from "../engine/resolveEffect";
 import { peekNextMove } from "../engine/enemyAi";
 import { getCardById } from "../data/cards";
+import { getInjectorById } from "../data/injectors";
 import { getMapNodeById } from "../data/mapNodes";
 import { useRunStore } from "../state/runStore";
 import { DevPanel } from "./DevPanel";
@@ -49,6 +50,7 @@ export function CombatScreen() {
   const activeCombatState = useRunStore((s) => s.activeCombatState);
   const ownedModuleIds = useRunStore((s) => s.ownedModuleIds);
   const carriedOverdrive = useRunStore((s) => s.carriedOverdrive);
+  const injectorIds = useRunStore((s) => s.injectorIds);
 
   const [state, send] = useMachine(combatMachine, {
     input: {
@@ -58,6 +60,7 @@ export function CombatScreen() {
           playerMaxHp,
           modules: ownedModuleIds,
           carriedOverdrive,
+          injectorIds,
         }),
     },
   });
@@ -158,6 +161,26 @@ export function CombatScreen() {
           );
         })}
       </div>
+
+      {combat.injectors.length > 0 && (
+        <div className="injector-row">
+          {combat.injectors.map((injectorId, i) => {
+            const injector = getInjectorById(injectorId);
+            return (
+              <button
+                key={i}
+                type="button"
+                className={`injector ${combat.selectedInjectorIndex === i ? "selected" : ""}`}
+                onClick={() => send({ type: "SELECT_INJECTOR", index: i })}
+                disabled={!isPlayerTurn}
+              >
+                <div className="card-name">{injector.name}</div>
+                <div className="card-desc">{injector.description}</div>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <button
         type="button"

@@ -82,10 +82,15 @@ function aliveEnemies(state: CombatState): EnemyCombatantState[] {
   return state.enemies.filter((e) => e.hp > 0);
 }
 
-export function resolveCardEffects(card: CardData, state: CombatState): void {
-  for (const effect of card.effects) {
-    applyEffect(effect, state, state.player, card.name);
+/** Общий проход по Effect[] — переиспользуется картами (resolveCardEffects) и Инъекторами (useInjector). */
+export function resolveEffects(effects: Effect[], state: CombatState, sourceName: string): void {
+  for (const effect of effects) {
+    applyEffect(effect, state, state.player, sourceName);
   }
+}
+
+export function resolveCardEffects(card: CardData, state: CombatState): void {
+  resolveEffects(card.effects, state, card.name);
 }
 
 /**
@@ -156,7 +161,12 @@ export function resolveEnemyAction(action: EnemyAction, enemy: EnemyCombatantSta
 function applyEffect(effect: Effect, state: CombatState, attacker: CombatantState, sourceName: string): void {
   switch (effect.kind) {
     case "damage": {
-      const amount = computeAmount(effect.amount, state);
+      let amount = computeAmount(effect.amount, state);
+      // Боевой стимулятор (Инъектор): удваивает следующий эффект урона от игрока, затем гасится.
+      if (attacker === state.player && state.player.doubleNextAttack) {
+        amount *= 2;
+        state.player.doubleNextAttack = false;
+      }
       const targets = effect.target === "allEnemies" ? aliveEnemies(state) : [getTargetEnemy(state)];
       for (const enemy of targets) {
         const dealt = applyDamage(attacker, enemy, amount);
@@ -228,6 +238,11 @@ function applyEffect(effect: Effect, state: CombatState, attacker: CombatantStat
       pushLog(state, `${sourceName}: сброшено ${discarded} карт(ы).`);
       break;
     }
+    case "doubleNextAttack": {
+      state.player.doubleNextAttack = true;
+      pushLog(state, `${sourceName}: следующая атака нанесёт двойной урон.`);
+      break;
+    }
   }
 }
 
@@ -296,6 +311,7 @@ export function endPlayerTurn(state: CombatState): void {
   // Индексы выбора карты/цели теряют смысл вместе со старой рукой — иначе
   // "выбор" молча прилипнет к случайной карте в новой руке следующего хода.
   state.selectedHandIndex = null;
+  state.selectedInjectorIndex = null;
   state.targetEnemyIndex = null;
 }
 

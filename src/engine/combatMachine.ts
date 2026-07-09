@@ -1,12 +1,14 @@
 import { assign, setup } from "xstate";
 import type { Status } from "../types";
 import { STARTER_DECK_IDS, getCardById } from "../data/cards";
+import { getInjectorById } from "../data/injectors";
 import { checkOutcome, createInitialCombatState, type CombatState } from "./combatState";
 import { runEnemyTurn } from "./enemyAi";
 import {
   endPlayerTurn as processEndOfTurn,
   fireTriggers,
   resolveCardEffects,
+  resolveEffects,
   startPlayerTurn as processStartOfTurn,
 } from "./resolveEffect";
 
@@ -18,6 +20,7 @@ export interface CombatMachineContext {
 
 export type CombatMachineEvent =
   | { type: "SELECT_CARD"; index: number }
+  | { type: "SELECT_INJECTOR"; index: number }
   | { type: "TARGET_ENEMY"; index: number }
   | { type: "END_TURN" }
   | { type: "DEV_SET_HP"; who: "player" | number; hp: number }
@@ -27,6 +30,17 @@ export type CombatMachineEvent =
 function cardNeedsTarget(cardId: string): boolean {
   const card = getCardById(cardId);
   return card.effects.some((e) => (e.kind === "damage" || e.kind === "applyStatus") && e.target === "enemy");
+}
+
+function useInjector(state: CombatState, index: number): void {
+  const injectorId = state.injectors[index];
+  if (!injectorId) return;
+  const injector = getInjectorById(injectorId);
+  resolveEffects(injector.effects, state, injector.name);
+  state.injectors.splice(index, 1);
+  state.selectedHandIndex = null;
+  state.selectedInjectorIndex = null;
+  state.targetEnemyIndex = null;
 }
 
 function playCard(state: CombatState, handIndex: number): void {
@@ -54,6 +68,7 @@ function playCard(state: CombatState, handIndex: number): void {
   }
   fireTriggers(state, "onCardPlayed");
   state.selectedHandIndex = null;
+  state.selectedInjectorIndex = null;
   state.targetEnemyIndex = null;
 }
 
@@ -77,17 +92,40 @@ export const combatMachine = setup({
       }
       const cardId = state.hand[event.index];
       if (!cardId) return {};
+      state.selectedInjectorIndex = null;
       if (cardNeedsTarget(cardId)) state.selectedHandIndex = event.index;
       else playCard(state, event.index);
+      return { combat: state };
+    }),
+    selectInjector: assign(({ context, event }) => {
+      if (event.type !== "SELECT_INJECTOR") return {};
+      const state = structuredClone(context.combat);
+      if (state.selectedInjectorIndex === event.index) {
+        state.selectedInjectorIndex = null;
+        return { combat: state };
+      }
+      const injectorId = state.injectors[event.index];
+      if (!injectorId) return {};
+      state.selectedHandIndex = null;
+      if (getInjectorById(injectorId).targeted) state.selectedInjectorIndex = event.index;
+      else useInjector(state, event.index);
       return { combat: state };
     }),
     targetEnemy: assign(({ context, event }) => {
       if (event.type !== "TARGET_ENEMY") return {};
       const state = structuredClone(context.combat);
-      if (state.selectedHandIndex === null) return {};
       const enemy = state.enemies[event.index];
+      if (!enemy || enemy.hp <= 0) return {};
+      if (state.selectedInjectorIndex !== null) {
+        const injectorId = state.injectors[state.selectedInjectorIndex];
+        if (!injectorId || !getInjectorById(injectorId).targeted) return {};
+        state.targetEnemyIndex = event.index;
+        useInjector(state, state.selectedInjectorIndex);
+        return { combat: state };
+      }
+      if (state.selectedHandIndex === null) return {};
       const cardId = state.hand[state.selectedHandIndex];
-      if (!enemy || enemy.hp <= 0 || !cardId || !cardNeedsTarget(cardId)) return {};
+      if (!cardId || !cardNeedsTarget(cardId)) return {};
       state.targetEnemyIndex = event.index;
       playCard(state, state.selectedHandIndex);
       return { combat: state };
@@ -137,6 +175,7 @@ export const combatMachine = setup({
     playerTurn: {
       on: {
         SELECT_CARD: { actions: "selectCard" },
+        SELECT_INJECTOR: { actions: "selectInjector" },
         TARGET_ENEMY: { actions: "targetEnemy" },
         END_TURN: "endingTurn",
         DEV_SET_HP: { actions: "devSetHp" },

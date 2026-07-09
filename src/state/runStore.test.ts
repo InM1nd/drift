@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { useRunStore } from "./runStore";
+import { MAX_INJECTORS, useRunStore } from "./runStore";
 import { MODULES } from "../data/modules";
+import { INJECTORS } from "../data/injectors";
+import { createInitialCombatState } from "../engine/combatState";
 
 describe("runStore — Модули (docs/05-items.md)", () => {
   it("победа над Стражем (элитой) выдаёт случайный ещё не полученный Модуль", () => {
@@ -43,5 +45,41 @@ describe("runStore — Модули (docs/05-items.md)", () => {
     useRunStore.setState({ currentNodeId: "compartment-1" });
     useRunStore.getState().resolveCombat("victory", 70, 4);
     expect(useRunStore.getState().carriedOverdrive).toBe(0);
+  });
+});
+
+describe("runStore — Инъекторы (docs/05-items.md)", () => {
+  it("победа над боем выдаёт случайный Инъектор, пока есть свободный слот", () => {
+    useRunStore.getState().startNewRun();
+    useRunStore.setState({ currentNodeId: "compartment-1" });
+    useRunStore.getState().resolveCombat("victory", 70, 0);
+
+    const state = useRunStore.getState();
+    expect(state.injectorIds.length).toBe(1);
+    expect(INJECTORS.some((i) => i.id === state.injectorIds[0])).toBe(true);
+    expect(state.pendingInjectorId).toBe(state.injectorIds[0]);
+  });
+
+  it("инвентарь не растёт сверх MAX_INJECTORS", () => {
+    useRunStore.getState().startNewRun();
+    useRunStore.setState({
+      currentNodeId: "compartment-1",
+      injectorIds: Array(MAX_INJECTORS).fill(INJECTORS[0].id),
+    });
+    useRunStore.getState().resolveCombat("victory", 70, 0);
+
+    const state = useRunStore.getState();
+    expect(state.injectorIds.length).toBe(MAX_INJECTORS);
+    expect(state.pendingInjectorId).toBeNull();
+  });
+
+  it("updateActiveCombat зеркалит расход Инъектора из боя в инвентарь забега", () => {
+    useRunStore.getState().startNewRun();
+    useRunStore.setState({ injectorIds: ["shield-injector", "medgel"] });
+    const combat = createInitialCombatState(70, ["strike"], ["hull-turret"], 1, {
+      injectorIds: ["medgel"], // как будто shield-injector уже потрачен в этом бою
+    });
+    useRunStore.getState().updateActiveCombat(combat);
+    expect(useRunStore.getState().injectorIds).toEqual(["medgel"]);
   });
 });
