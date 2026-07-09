@@ -42,7 +42,7 @@ function intentFor(enemy: EnemyCombatantState, combat: CombatState): { icon: str
 }
 
 export function CombatScreen() {
-  const node = useRunStore((s) => getMapNodeById(s.currentNodeId));
+  const node = useRunStore((s) => getMapNodeById(s.mapNodes, s.currentNodeId));
   const deck = useRunStore((s) => s.deck);
   const playerHp = useRunStore((s) => s.player.hp);
   const playerMaxHp = useRunStore((s) => s.player.maxHp);

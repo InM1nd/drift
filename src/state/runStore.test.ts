@@ -3,11 +3,19 @@ import { MAX_INJECTORS, useRunStore } from "./runStore";
 import { MODULES } from "../data/modules";
 import { INJECTORS } from "../data/injectors";
 import { createInitialCombatState } from "../engine/combatState";
+import type { MapNodeType } from "../types";
+
+/** Карта теперь генерируется за забег (Milestone B) — ids не фиксированы, ищем узел по типу. */
+function nodeIdOfType(type: MapNodeType): string {
+  const node = useRunStore.getState().mapNodes.find((n) => n.type === type);
+  if (!node) throw new Error(`Нет узла типа ${type} в сгенерированной карте`);
+  return node.id;
+}
 
 describe("runStore — Модули (docs/05-items.md)", () => {
   it("победа над Стражем (элитой) выдаёт случайный ещё не полученный Модуль", () => {
     useRunStore.getState().startNewRun();
-    useRunStore.setState({ currentNodeId: "elite-1" });
+    useRunStore.setState({ currentNodeId: nodeIdOfType("elite") });
     useRunStore.getState().resolveCombat("victory", 70, 0);
 
     const state = useRunStore.getState();
@@ -18,7 +26,7 @@ describe("runStore — Модули (docs/05-items.md)", () => {
 
   it("если все Модули уже получены, повторная победа над элитой не выдаёт дубликат", () => {
     useRunStore.getState().startNewRun();
-    useRunStore.setState({ currentNodeId: "elite-1", ownedModuleIds: MODULES.map((m) => m.id) });
+    useRunStore.setState({ currentNodeId: nodeIdOfType("elite"), ownedModuleIds: MODULES.map((m) => m.id) });
     useRunStore.getState().resolveCombat("victory", 70, 0);
 
     const state = useRunStore.getState();
@@ -28,21 +36,21 @@ describe("runStore — Модули (docs/05-items.md)", () => {
 
   it("обычный Отсек не выдаёт Модуль", () => {
     useRunStore.getState().startNewRun();
-    useRunStore.setState({ currentNodeId: "compartment-1" });
+    useRunStore.setState({ currentNodeId: nodeIdOfType("compartment") });
     useRunStore.getState().resolveCombat("victory", 70, 0);
     expect(useRunStore.getState().ownedModuleIds).toEqual([]);
   });
 
   it("Боевой рекордер: Форсаж переносится в carriedOverdrive только если Модуль получен", () => {
     useRunStore.getState().startNewRun();
-    useRunStore.setState({ currentNodeId: "compartment-1", ownedModuleIds: ["combat-recorder"] });
+    useRunStore.setState({ currentNodeId: nodeIdOfType("compartment"), ownedModuleIds: ["combat-recorder"] });
     useRunStore.getState().resolveCombat("victory", 70, 4);
     expect(useRunStore.getState().carriedOverdrive).toBe(4);
   });
 
   it("без Боевого рекордера Форсаж не переносится между боями", () => {
     useRunStore.getState().startNewRun();
-    useRunStore.setState({ currentNodeId: "compartment-1" });
+    useRunStore.setState({ currentNodeId: nodeIdOfType("compartment") });
     useRunStore.getState().resolveCombat("victory", 70, 4);
     expect(useRunStore.getState().carriedOverdrive).toBe(0);
   });
@@ -51,7 +59,7 @@ describe("runStore — Модули (docs/05-items.md)", () => {
 describe("runStore — Инъекторы (docs/05-items.md)", () => {
   it("победа над боем выдаёт случайный Инъектор, пока есть свободный слот", () => {
     useRunStore.getState().startNewRun();
-    useRunStore.setState({ currentNodeId: "compartment-1" });
+    useRunStore.setState({ currentNodeId: nodeIdOfType("compartment") });
     useRunStore.getState().resolveCombat("victory", 70, 0);
 
     const state = useRunStore.getState();
@@ -63,7 +71,7 @@ describe("runStore — Инъекторы (docs/05-items.md)", () => {
   it("инвентарь не растёт сверх MAX_INJECTORS", () => {
     useRunStore.getState().startNewRun();
     useRunStore.setState({
-      currentNodeId: "compartment-1",
+      currentNodeId: nodeIdOfType("compartment"),
       injectorIds: Array(MAX_INJECTORS).fill(INJECTORS[0].id),
     });
     useRunStore.getState().resolveCombat("victory", 70, 0);

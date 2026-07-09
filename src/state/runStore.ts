@@ -3,11 +3,12 @@ import { persist, createJSONStorage, type StateStorage } from "zustand/middlewar
 import { get as idbGet, set as idbSet, del as idbDel } from "idb-keyval";
 import { createRng, nextInt, shuffle, type RngState } from "../engine/rng";
 import type { CombatState } from "../engine/combatState";
-import { getMapNodeById, FIRST_NODE_ID } from "../data/mapNodes";
+import { generateMap } from "../engine/mapGenerator";
+import { getMapNodeById } from "../data/mapNodes";
 import { CARDS, STARTER_DECK_IDS } from "../data/cards";
 import { MODULES } from "../data/modules";
 import { INJECTORS } from "../data/injectors";
-import type { RunScreen } from "../types";
+import type { MapNodeData, RunScreen } from "../types";
 
 const MODULE_COMBAT_RECORDER = "combat-recorder";
 // "инвентарь ограничен (например, 3 слота)" — docs/05-items.md.
@@ -34,6 +35,10 @@ interface RunState {
   credits: number;
   deck: string[];
   player: { hp: number; maxHp: number };
+  /** Ветвящийся граф этого забега (docs/06-map.md) — сгенерирован один раз из seed при старте. */
+  mapNodes: MapNodeData[];
+  /** Только для отображения трека на MapScreen — какие узлы стоят на одном "слое". */
+  displayLayers: string[][];
   currentNodeId: string;
   resolvedNodeIds: string[];
   combatSeed: number | null;
@@ -81,14 +86,21 @@ interface RunActions {
 type RunStore = RunState & RunActions;
 
 function createInitialRunState(seed: number): RunState {
+  const rng = createRng(seed);
+  // Генерация карты — часть детерминированного потока сида: расходует
+  // курсор rng здесь же, до того как он пойдёт на что-либо ещё, поэтому
+  // весь остальной забег (магазин, награды, сигналы) переигрывается 1-в-1.
+  const { nodes, displayLayers } = generateMap(rng);
   return {
     screen: "map",
     seed,
-    rng: createRng(seed),
+    rng,
     credits: STARTING_CREDITS,
     deck: [...STARTER_DECK_IDS],
     player: { hp: STARTING_HP, maxHp: STARTING_HP },
-    currentNodeId: FIRST_NODE_ID,
+    mapNodes: nodes,
+    displayLayers,
+    currentNodeId: nodes[0].id,
     resolvedNodeIds: [],
     combatSeed: null,
     activeCombatState: null,
@@ -123,7 +135,7 @@ export const useRunStore = create<RunStore>()(
 
       enterNode: () => {
         const state = get();
-        const node = getMapNodeById(state.currentNodeId);
+        const node = getMapNodeById(state.mapNodes, state.currentNodeId);
         if (node.type === "compartment" || node.type === "elite" || node.type === "boss") {
           const rng = { ...state.rng };
           const combatSeed = nextInt(rng, 2 ** 31);
@@ -150,7 +162,7 @@ export const useRunStore = create<RunStore>()(
           return;
         }
         const state = get();
-        const node = getMapNodeById(state.currentNodeId);
+        const node = getMapNodeById(state.mapNodes, state.currentNodeId);
         const nextPlayer = { ...state.player, hp: Math.max(0, Math.min(state.player.maxHp, finalPlayerHp)) };
         // Боевой рекордер (Модуль): Форсаж переносится в следующий бой этого захода.
         const carriedOverdrive = state.ownedModuleIds.includes(MODULE_COMBAT_RECORDER) ? finalOverdrive : 0;
@@ -273,7 +285,7 @@ export const useRunStore = create<RunStore>()(
 
       completeNode: () =>
         set((state) => {
-          const node = getMapNodeById(state.currentNodeId);
+          const node = getMapNodeById(state.mapNodes, state.currentNodeId);
           const resolvedNodeIds = state.resolvedNodeIds.includes(node.id)
             ? state.resolvedNodeIds
             : [...state.resolvedNodeIds, node.id];
