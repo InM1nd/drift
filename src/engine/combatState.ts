@@ -65,6 +65,8 @@ export function createInitialCombatState(
   deckCardIds: string[],
   enemyIds: string[],
   seed: number,
+  /** HP переносится между боями (docs/02-combat.md), максимум — нет: по умолчанию равен текущему HP. */
+  playerMaxHp: number = playerHp,
 ): CombatState {
   const rng = createRng(seed);
   const enemies = enemyIds.map((id) => enemyFromData(getEnemyById(id), rng));
@@ -76,7 +78,7 @@ export function createInitialCombatState(
     cardsPlayedThisTurn: 0,
     player: {
       hp: playerHp,
-      maxHp: playerHp,
+      maxHp: playerMaxHp,
       shield: 0,
       retainShield: false,
       statuses: {},

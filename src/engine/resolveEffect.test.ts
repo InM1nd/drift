@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { CombatantState } from "./combatState";
 import { createInitialCombatState } from "./combatState";
-import { applyBlockGain, applyDamage, resolveCardEffects } from "./resolveEffect";
+import { applyBlockGain, applyDamage, resolveCardEffects, resolveEnemyAction } from "./resolveEffect";
 
 function combatant(overrides: Partial<CombatantState> = {}): CombatantState {
   return { hp: 30, maxHp: 30, shield: 0, retainShield: false, statuses: {}, ...overrides };
@@ -43,7 +43,7 @@ describe("динамические значения карт", () => {
     const state = createInitialCombatState(70, ["counterstrike"], ["hull-turret"], 1);
     state.player.shield = 9;
     state.targetEnemyIndex = 0;
-    resolveCardEffects({ id: "counterstrike", name: "Контрудар", cost: 1, type: "attack", tags: [], effects: [{ kind: "damage", amount: { ref: "shield" }, target: "enemy" }] }, state);
+    resolveCardEffects({ id: "counterstrike", name: "Контрудар", cost: 1, type: "attack", tags: [], description: "", effects: [{ kind: "damage", amount: { ref: "shield" }, target: "enemy" }] }, state);
     expect(state.enemies[0].hp).toBe(state.enemies[0].maxHp - 9);
   });
 
@@ -52,7 +52,7 @@ describe("динамические значения карт", () => {
     state.cardsPlayedThisTurn = 4;
     state.targetEnemyIndex = 0;
     resolveCardEffects(
-      { id: "chain-reaction", name: "Цепная реакция", cost: 2, type: "attack", tags: [], exhaust: true, effects: [{ kind: "damage", amount: { ref: "cardsPlayedThisTurn", mult: 3 }, target: "enemy" }] },
+      { id: "chain-reaction", name: "Цепная реакция", cost: 2, type: "attack", tags: [], description: "", exhaust: true, effects: [{ kind: "damage", amount: { ref: "cardsPlayedThisTurn", mult: 3 }, target: "enemy" }] },
       state,
     );
     expect(state.enemies[0].hp).toBe(state.enemies[0].maxHp - 12);
@@ -63,9 +63,26 @@ describe("динамические значения карт", () => {
     state.targetEnemyIndex = 0;
     state.enemies[0].statuses.corrosion = 5;
     resolveCardEffects(
-      { id: "decay-finisher", name: "Финал распада", cost: 2, type: "attack", tags: [], exhaust: true, effects: [{ kind: "damage", amount: { ref: "corrosionOnTarget", mult: 2 }, target: "enemy" }] },
+      { id: "decay-finisher", name: "Финал распада", cost: 2, type: "attack", tags: [], description: "", exhaust: true, effects: [{ kind: "damage", amount: { ref: "corrosionOnTarget", mult: 2 }, target: "enemy" }] },
       state,
     );
     expect(state.enemies[0].hp).toBe(state.enemies[0].maxHp - 10);
+  });
+});
+
+describe("resolveEnemyAction — ходы Стража-гексапода (docs/04-enemies.md)", () => {
+  it("damageWithStatus: урон и статус на игрока одним ходом", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1);
+    resolveEnemyAction({ kind: "damageWithStatus", amount: 8, status: "breach", stacks: 1 }, state.enemies[0], state);
+    expect(state.player.hp).toBe(62);
+    expect(state.player.statuses.breach).toBe(1);
+  });
+
+  it("damagePerCardPlayed: берёт cardsPlayedThisTurn, а не размер руки — рука уже сброшена к ходу врага (docs/02-combat.md)", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1);
+    state.cardsPlayedThisTurn = 3;
+    state.hand = [];
+    resolveEnemyAction({ kind: "damagePerCardPlayed", perCard: 4 }, state.enemies[0], state);
+    expect(state.player.hp).toBe(58);
   });
 });

@@ -1,12 +1,5 @@
 import type { Status } from "../types";
-
-const ICONS: Record<Status, string> = {
-  corrosion: "☣",
-  overdrive: "⚡",
-  stabilization: "🛡+",
-  jamming: "📡",
-  breach: "💥",
-};
+import { STATUS_ICONS } from "./statusIcons";
 
 export function StatusChips({ statuses }: { statuses: Partial<Record<Status, number>> }) {
   const entries = Object.entries(statuses).filter(([, v]) => (v ?? 0) > 0) as [Status, number][];
@@ -15,7 +8,7 @@ export function StatusChips({ statuses }: { statuses: Partial<Record<Status, num
     <div className="status-chips">
       {entries.map(([status, stacks]) => (
         <span key={status} className={`status-chip status-${status}`}>
-          {ICONS[status]} {stacks}
+          {STATUS_ICONS[status]} {stacks}
         </span>
       ))}
     </div>

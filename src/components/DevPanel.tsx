@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { CombatState } from "../engine/combatState";
 import type { CombatMachineEvent } from "../engine/combatMachine";
-import { ENEMIES } from "../data/enemies";
+import { ALL_ENEMIES } from "../data/enemies";
 import type { Status } from "../types";
 import "./DevPanel.css";
 
@@ -15,7 +15,7 @@ const STATUSES: Status[] = ["corrosion", "overdrive", "stabilization", "jamming"
 export function DevPanel({ combat, send }: DevPanelProps) {
   const [open, setOpen] = useState(false);
   const [seed, setSeed] = useState(1);
-  const [restartEnemyId, setRestartEnemyId] = useState(ENEMIES[0].id);
+  const [restartEnemyId, setRestartEnemyId] = useState(ALL_ENEMIES[0].id);
 
   if (!open) {
     return (
@@ -94,7 +94,7 @@ export function DevPanel({ combat, send }: DevPanelProps) {
         <span>Новый бой</span>
         <input type="number" value={seed} onChange={(e) => setSeed(Number(e.target.value))} />
         <select value={restartEnemyId} onChange={(e) => setRestartEnemyId(e.target.value)}>
-          {ENEMIES.map((enemy) => (
+          {ALL_ENEMIES.map((enemy) => (
             <option key={enemy.id} value={enemy.id}>
               {enemy.name}
             </option>

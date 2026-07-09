@@ -42,14 +42,19 @@ function computeAmount(amount: Amount, state: CombatState): number {
 }
 
 /** База + Форсаж атакующего, ×1.5 если на цели Пробоина, ×0.75 если у атакующего Помехи. */
-export function applyDamage(attacker: CombatantState, target: CombatantState, base: number): number {
+export function computeDamage(attacker: CombatantState, target: CombatantState, base: number): number {
   const overdrive = attacker.statuses.overdrive ?? 0;
   const jamming = attacker.statuses.jamming ?? 0;
   const breach = target.statuses.breach ?? 0;
   let raw = base + overdrive;
   if (breach > 0) raw *= 1.5;
   if (jamming > 0) raw *= 0.75;
-  const final = Math.max(0, Math.floor(raw));
+  return Math.max(0, Math.floor(raw));
+}
+
+/** Считает итоговый урон (см. computeDamage) и списывает его с цели через Щит. */
+export function applyDamage(attacker: CombatantState, target: CombatantState, base: number): number {
+  const final = computeDamage(attacker, target, base);
   const shieldAbsorbed = Math.min(target.shield, final);
   target.shield -= shieldAbsorbed;
   target.hp = Math.max(0, target.hp - (final - shieldAbsorbed));
@@ -103,6 +108,26 @@ export function resolveEnemyAction(action: EnemyAction, enemy: EnemyCombatantSta
     case "summon":
       pushLog(state, `${enemy.name}: вызов подкрепления (не реализовано в Фазе 1).`);
       break;
+    case "damageWithStatus": {
+      const dealt = applyDamage(enemy, state.player, action.amount);
+      addStatus(state.player, action.status, action.stacks);
+      pushLog(
+        state,
+        `${enemy.name}: ${dealt} урона по Ныряльщику + ${STATUS_LABELS[action.status]} +${action.stacks} (HP ${state.player.hp}/${state.player.maxHp}).`,
+      );
+      checkOutcome(state);
+      break;
+    }
+    case "damagePerCardPlayed": {
+      const base = action.perCard * state.cardsPlayedThisTurn;
+      const dealt = applyDamage(enemy, state.player, base);
+      pushLog(
+        state,
+        `${enemy.name}: ${dealt} урона по Ныряльщику за ${state.cardsPlayedThisTurn} карт(ы), сыгранных в прошлый ход (HP ${state.player.hp}/${state.player.maxHp}).`,
+      );
+      checkOutcome(state);
+      break;
+    }
   }
 }
 

@@ -28,8 +28,12 @@ export interface CardData {
   cost: number | "X";
   type: CardType;
   tags: string[];
+  /** Человекочитаемый текст правил, см. "Эффект" в docs/03-cards.md. */
+  description: string;
   exhaust?: boolean;
   retain?: boolean;
   trigger?: Trigger;
   effects: Effect[];
+  /** id базового Протокола, если это его «+»-версия (docs/03-cards.md, правило апгрейда). */
+  upgradeOf?: string;
 }

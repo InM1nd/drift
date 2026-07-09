@@ -40,8 +40,54 @@ export const ENEMIES: EnemyData[] = [
   },
 ];
 
+/**
+ * Элита и босс Акта 1 (Milestone A — минимальный каркас Фазы 2). Упрощения
+ * относительно docs/04-enemies.md, осознанно оставленные вне этого среза:
+ * Страж-гексапод не даёт Модуль (Модули — Milestone B), Ядро-Страж не
+ * призывает подкрепление во второй фазе (summon пока лог-заглушка в
+ * resolveEffect.ts) — вместо этого фаза 2 накладывает Коррозию и на себя,
+ * и на игрока напрямую.
+ */
+export const ELITE_ENEMIES: EnemyData[] = [
+  {
+    id: "guardian-hexapod",
+    name: "Страж-гексапод",
+    hpRange: [45, 55],
+    moveset: [
+      { kind: "damageWithStatus", amount: 8, status: "breach", stacks: 1 },
+      { kind: "block", amount: 10 },
+      { kind: "damagePerCardPlayed", perCard: 4 },
+    ],
+    pattern: { kind: "cycle", sequence: [0, 1, 2] },
+  },
+];
+
+export const BOSS_ENEMIES: EnemyData[] = [
+  {
+    id: "core-guardian",
+    name: 'Ядро-Страж «Корневой процесс: КОРРОЗИЯ»',
+    hpRange: [140, 160],
+    moveset: [
+      { kind: "damage", amount: 10 },
+      { kind: "applyStatus", status: "corrosion", stacks: 3, target: "player" },
+      { kind: "block", amount: 10 },
+      { kind: "damage", amount: 12 },
+      { kind: "applyStatus", status: "corrosion", stacks: 3, target: "self" },
+      { kind: "applyStatus", status: "corrosion", stacks: 3, target: "player" },
+    ],
+    pattern: {
+      kind: "phase",
+      hpThreshold: 50,
+      before: { kind: "cycle", sequence: [0, 1, 2] },
+      after: { kind: "cycle", sequence: [3, 4, 5] },
+    },
+  },
+];
+
+export const ALL_ENEMIES = [...ENEMIES, ...ELITE_ENEMIES, ...BOSS_ENEMIES];
+
 export function getEnemyById(id: string): EnemyData {
-  const enemy = ENEMIES.find((e) => e.id === id);
+  const enemy = ALL_ENEMIES.find((e) => e.id === id);
   if (!enemy) throw new Error(`Unknown enemy id: ${id}`);
   return enemy;
 }
