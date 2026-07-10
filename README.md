@@ -1,10 +1,10 @@
-# ДРЕЙФ (рабочее название)
+# DRIFT (working title)
 
-Пиксельный карточный roguelike-декбилдинг. Веб + PWA — macOS, Windows, телефон из одного кода.
+Pixel-art card roguelike deckbuilder. Web + PWA — macOS, Windows, and phone from a single codebase.
 
-Документация: [docs/00-index.md](docs/00-index.md) — сеттинг, карты, враги, архитектура, роадмап.
+Docs: [docs/00-index.md](docs/00-index.md) — setting, cards, enemies, architecture, roadmap.
 
-## Разработка
+## Development
 
 ```
 npm install
