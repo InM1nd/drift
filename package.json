@@ -11,6 +11,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.2.7",
+    "@fontsource/press-start-2p": "^5.2.7",
     "@xstate/react": "^6.1.0",
     "framer-motion": "^12.42.2",
     "idb-keyval": "^6.3.0",

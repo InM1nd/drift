@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useRunStore } from "../state/runStore";
 import { getMapNodeById } from "../data/mapNodes";
 import { GameMenu } from "./GameMenu";
-import { HudRoomBackdrop } from "./HudRoomBackdrop";
+import { RoomBackdrop } from "./RoomBackdrop";
 import { CreditsIcon, HullIcon, ThreatIcon } from "./icons";
 import { NODE_ICONS } from "./mapIcons";
 import { ScreenHeader } from "./ScreenHeader";
@@ -48,7 +48,7 @@ export function MapScreen() {
 
   return (
     <div className="screen-layout map-screen">
-      <HudRoomBackdrop kind="map" seed={currentNode.id} />
+      <RoomBackdrop kind="map" seed={currentNode.id} />
       <ScreenHeader
         code="NAV // ROUTE SCAN"
         title="ДРЕЙФ · Остов «Хорда»"
@@ -65,6 +65,11 @@ export function MapScreen() {
       </p>
 
       <div className="map-track">
+        <div aria-hidden="true" className="pixel-map-astrolabe">
+          <span />
+          <span />
+          <span />
+        </div>
         {displayLayers.map((layer, i) => {
           const isFullyVisible = i <= currentLayerIndex + 1;
           return (

@@ -177,3 +177,92 @@ export function SettingsIcon(props: IconProps) {
     </IconFrame>
   );
 }
+
+function PixelGlyph({ children, className, ...props }: IconProps & { children: ReactNode }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={`game-icon pixel-glyph${className ? ` ${className}` : ""}`}
+      fill="currentColor"
+      focusable="false"
+      viewBox="0 0 16 16"
+      {...props}
+    >
+      {children}
+    </svg>
+  );
+}
+
+export function PixelCorrosionGlyph(props: IconProps) {
+  return <PixelGlyph {...props}><path d="M2 6h2V4h2V2h4v2h2v2h2v4h-2v2h-2v2H6v-2H4v-2H2Z" /></PixelGlyph>;
+}
+
+export function PixelOverdriveGlyph(props: IconProps) {
+  return <PixelGlyph {...props}><path d="M8 1h3L8 7h3l-4 8 1-6H5Z" /></PixelGlyph>;
+}
+
+export function PixelStabilizationGlyph(props: IconProps) {
+  return <PixelGlyph {...props}><path d="M8 1 13 3v4c0 4-2 6-5 8-3-2-5-4-5-8V3Zm-1 4H5v2h2v2h2V7h2V5H9V3H7Z" /></PixelGlyph>;
+}
+
+export function PixelJammingGlyph(props: IconProps) {
+  return <PixelGlyph {...props}><path d="M1 5h4v2H1Zm10 0h4v2h-4ZM4 9h4v2H4Zm7 0h4v2h-4ZM7 1h2v4H7Zm0 10h2v4H7Z" /></PixelGlyph>;
+}
+
+export function PixelBreachGlyph(props: IconProps) {
+  return <PixelGlyph {...props}><path d="M3 2h10v2H3Zm0 10h10v2H3ZM2 4h2v8H2Zm10 0h2v3h-2Zm-2 3h4v2h-4Zm-2 2h4v2H8Zm-2 2h4v2H6Z" /></PixelGlyph>;
+}
+
+export function PixelReflectGlyph(props: IconProps) {
+  return <PixelGlyph {...props}><path d="M2 7h7V5l4 3-4 3V9H2Zm9 4h2v2h-2Zm-2 2h2v2H9Zm-2 1h2v1H7Z" /></PixelGlyph>;
+}
+
+export function PixelCompartmentGlyph(props: IconProps) {
+  return <PixelGlyph {...props}><path d="M3 2h10l2 4-2 8H3L1 6Zm2 3h6v6H5Z" /></PixelGlyph>;
+}
+
+export function PixelEliteGlyph(props: IconProps) {
+  return <PixelGlyph {...props}><path d="M8 1 13 6 8 11 3 6Zm0 4 5 5-5 5-5-5Z" /></PixelGlyph>;
+}
+
+export function PixelSignalGlyph(props: IconProps) {
+  return <PixelGlyph {...props}><path d="M1 9h3l1-2 2 4 2-6 2 4h4v2h-5l-1-2-2 4-2-4-1 2H1Z" /></PixelGlyph>;
+}
+
+export function PixelShopGlyph(props: IconProps) {
+  return <PixelGlyph {...props}><path d="M2 2h12v12H2Zm2 2v2h8V4Zm0 4v2h8V8Zm0 4v2h6v-2Z" /></PixelGlyph>;
+}
+
+export function PixelRestGlyph(props: IconProps) {
+  return <PixelGlyph {...props}><path d="M6 1h4v4h4v4h-4v4H6V9H2V5h4Z" /></PixelGlyph>;
+}
+
+export function PixelBossGlyph(props: IconProps) {
+  return <PixelGlyph {...props}><path d="M8 1h3v2h2v2h2v6h-2v2h-2v2H8v-2H5v-2H3V5h2V3h2ZM7 6h2v2H7Zm2 2h2v2H9Z" /></PixelGlyph>;
+}
+
+export type PixelInjectorKind =
+  | "overdriveStim"
+  | "shieldInjector"
+  | "combatStimulant"
+  | "medgel"
+  | "reactorBooster"
+  | "empInjector";
+
+export function PixelInjectorGlyph({ kind, ...props }: IconProps & { kind: PixelInjectorKind }) {
+  if (kind === "overdriveStim") return <PixelGlyph {...props}><path d="M7 1h2v3h2v2H9v2H7V6H5V4h2Zm-3 8h8v2H4Zm1 2h6v2H5Zm1 2h4v2H6Z" /></PixelGlyph>;
+  if (kind === "shieldInjector") return <PixelGlyph {...props}><path d="M8 1 13 3v4c0 3-2 5-5 7-3-2-5-4-5-7V3Zm-2 4h4v5H6Z" /></PixelGlyph>;
+  if (kind === "combatStimulant") return <PixelGlyph {...props}><path d="M4 2h8v3H4ZM2 7h12v2H2Zm2 3h8v4H4Z" /></PixelGlyph>;
+  if (kind === "medgel") return <PixelGlyph {...props}><path d="M6 1h4v3h3v4h-3v3H6V8H3V4h3Zm-2 11h8v3H4Z" /></PixelGlyph>;
+  if (kind === "reactorBooster") return <PixelGlyph {...props}><path d="M8 1h3L8 7h3l-4 8 1-6H5Zm5 1h2v2h-2Zm-2 2h2v2h-2Z" /></PixelGlyph>;
+  return <PixelGlyph {...props}><path d="M2 5h12v2H2Zm2-2h8v2H4Zm2 4h6v2H6Zm2 2h4v2H8Zm-4 2h8v3H4Z" /></PixelGlyph>;
+}
+
+export type PixelModuleKind = "naniteReservoir" | "reflectiveHull" | "priorityChip" | "combatRecorder";
+
+export function PixelModuleGlyph({ kind, ...props }: IconProps & { kind: PixelModuleKind }) {
+  if (kind === "naniteReservoir") return <PixelGlyph {...props}><path d="M3 3h10v10H3Zm2 2h2v2H5Zm4 0h2v2H9ZM5 9h2v2H5Zm4 0h2v2H9Z" /></PixelGlyph>;
+  if (kind === "reflectiveHull") return <PixelGlyph {...props}><path d="M2 3h12v3H2Zm1 4h10v6H3Zm2 1h6v1H5Zm0 2h6v1H5Z" /></PixelGlyph>;
+  if (kind === "priorityChip") return <PixelGlyph {...props}><path d="M4 2h8v3h2v6h-2v3H4v-3H2V5h2Zm2 4h4v4H6Z" /></PixelGlyph>;
+  return <PixelGlyph {...props}><path d="M3 2h10v12H3Zm2 2h6v2H5Zm0 3h6v2H5Zm0 3h4v2H5Z" /></PixelGlyph>;
+}

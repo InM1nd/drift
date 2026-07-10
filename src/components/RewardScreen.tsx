@@ -4,7 +4,7 @@ import { getCardById } from "../data/cards";
 import { getModuleById } from "../data/modules";
 import { getInjectorById } from "../data/injectors";
 import { GameMenu } from "./GameMenu";
-import { HudRoomBackdrop } from "./HudRoomBackdrop";
+import { RoomBackdrop } from "./RoomBackdrop";
 import { ProtocolIcon } from "./ProtocolIcon";
 import { ScreenHeader } from "./ScreenHeader";
 import "./ScreenLayout.css";
@@ -19,7 +19,7 @@ export function RewardScreen() {
 
   return (
     <div className="screen-layout reward-screen">
-      <HudRoomBackdrop kind="reward" />
+      <RoomBackdrop kind="reward" />
       <ScreenHeader code="RECOVERY // LOOT" title="Награда" />
       <div className="reward-notices">
         <p className="screen-hint">Боевой дебриф: +₡ {lastCombatRewardCredits} за зачистку сектора.</p>

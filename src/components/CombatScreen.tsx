@@ -12,8 +12,19 @@ import { useRunStore } from "../state/runStore";
 import { EnemySprite, PlayerSprite } from "./CombatSprite";
 import { CardEffectSummary, EffectLegend } from "./CardEffectSummary";
 import { GameMenu } from "./GameMenu";
-import { HudRoomBackdrop } from "./HudRoomBackdrop";
-import { AttackIcon, DiscardIcon, DrawIcon, EnergyIcon, HullIcon, InjectorIcon, RepairIcon, ShieldIcon } from "./icons";
+import { RoomBackdrop } from "./RoomBackdrop";
+import {
+  AttackIcon,
+  DiscardIcon,
+  DrawIcon,
+  EnergyIcon,
+  HullIcon,
+  InjectorIcon,
+  PixelInjectorGlyph,
+  RepairIcon,
+  ShieldIcon,
+  type PixelInjectorKind,
+} from "./icons";
 import { ProtocolIcon } from "./ProtocolIcon";
 import { StatusChips } from "./StatusChips";
 import { STATUS_ICONS } from "./statusIcons";
@@ -109,6 +120,7 @@ export function CombatScreen() {
   const playerEnergyPercent = Math.max(0, (combat.player.energy / combat.player.maxEnergy) * 100);
   const [combatNotice, setCombatNotice] = useState<{ text: string; kind: "system" | "warning" | "damage" } | null>(null);
   const [inspectedCardIndex, setInspectedCardIndex] = useState<number | null>(null);
+  const [damageFlashActive, setDamageFlashActive] = useState(false);
   const selectedCardNeedsTarget = selectedCardId ? cardNeedsTarget(selectedCardId) : false;
   const targetingActive = selectedCardNeedsTarget || selectedInjector !== null;
   const lowHull = playerHpPercent <= 30;
@@ -132,9 +144,26 @@ export function CombatScreen() {
   useEffect(() => {
     if (!logPulse) return;
     setCombatNotice(logPulse);
+    let flashTimeout: number | undefined;
+    if (logPulse.kind === "damage") {
+      setDamageFlashActive(true);
+      flashTimeout = window.setTimeout(() => setDamageFlashActive(false), 130);
+    }
     const timeout = window.setTimeout(() => setCombatNotice(null), 1400);
-    return () => window.clearTimeout(timeout);
+    return () => {
+      window.clearTimeout(timeout);
+      if (flashTimeout) window.clearTimeout(flashTimeout);
+    };
   }, [logPulse]);
+
+  function injectorGlyphKind(id: string): PixelInjectorKind {
+    if (id === "overdrive-stim") return "overdriveStim";
+    if (id === "shield-injector") return "shieldInjector";
+    if (id === "combat-stimulant") return "combatStimulant";
+    if (id === "medgel") return "medgel";
+    if (id === "reactor-booster") return "reactorBooster";
+    return "empInjector";
+  }
 
   useEffect(() => {
     if (!targetingActive) return;
@@ -179,7 +208,7 @@ export function CombatScreen() {
   }
 
   return (
-    <div className={`combat-screen${lowHull ? " low-hull" : ""}`}>
+    <div className={`combat-screen${lowHull ? " low-hull" : ""}${damageFlashActive ? " damage-flash" : ""}`}>
       <header className="top-bar">
         <span className="turn-index"><small>Цикл</small>{String(combat.turn + 1).padStart(2, "0")}</span>
         <span className="location"><small>Сектор</small><strong>{node.label}</strong></span>
@@ -187,7 +216,12 @@ export function CombatScreen() {
       </header>
 
       <section className={`combat-theatre room-context-${node.type}`} aria-label="Сканирующая область">
-        <HudRoomBackdrop kind={node.type} seed={node.id} />
+        <RoomBackdrop kind={node.type} seed={node.id} />
+        <div aria-hidden="true" className="pixel-theatre-seal">
+          <span />
+          <span />
+          <span />
+        </div>
         <div className="scanner-telemetry">
           <span>Сканер // контактов {activeEnemyCount}</span>
         </div>
@@ -213,7 +247,9 @@ export function CombatScreen() {
                   <span>#{String(i + 1).padStart(2, "0")}</span>
                   <span>CONTACT // TRACKED</span>
                 </div>
-                <EnemySprite enemyId={enemy.enemyId} hp={enemy.hp} />
+                <div className="enemy-sprite-frame">
+                  <EnemySprite enemyId={enemy.enemyId} hp={enemy.hp} />
+                </div>
                 <div className="enemy-name">{enemy.name}</div>
                 {intent ? (
                   <div className="enemy-intent" title="Намерение противника на следующий ход">
@@ -244,7 +280,10 @@ export function CombatScreen() {
       <section className="cockpit-console" aria-label="Консоль боя">
         <div className="console-status">
           <div className="player-panel">
-            <PlayerSprite />
+            <div className="player-avatar-frame">
+              <PlayerSprite />
+              <span aria-hidden="true">DIVR</span>
+            </div>
             <div className="player-status">
               <div className="vital vital-hp">
                 <span className="vital-label"><HullIcon /> Корпус</span>
@@ -305,7 +344,10 @@ export function CombatScreen() {
                     title={`${injector.name} — ${injector.description}`}
                   >
                     <span className="injector-code">INJ-{String(i + 1).padStart(2, "0")}</span>
-                    <InjectorIcon className="injector-icon" />
+                    <span className="injector-icon-stack">
+                      <InjectorIcon className="injector-icon injector-icon-line" />
+                      <PixelInjectorGlyph className="injector-icon injector-icon-pixel" kind={injectorGlyphKind(injectorId)} />
+                    </span>
                     <span className="injector-copy">
                       <strong>{injector.name}</strong>
                       <small>{injector.description}</small>

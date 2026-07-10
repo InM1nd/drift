@@ -5,8 +5,16 @@ import { getModuleById } from "../data/modules";
 import { getInjectorById } from "../data/injectors";
 import type { ShopOffer } from "../types";
 import { GameMenu } from "./GameMenu";
-import { HudRoomBackdrop } from "./HudRoomBackdrop";
-import { CreditsIcon, InjectorIcon, ModuleIcon } from "./icons";
+import { RoomBackdrop } from "./RoomBackdrop";
+import {
+  CreditsIcon,
+  InjectorIcon,
+  ModuleIcon,
+  PixelInjectorGlyph,
+  PixelModuleGlyph,
+  type PixelInjectorKind,
+  type PixelModuleKind,
+} from "./icons";
 import { ProtocolIcon } from "./ProtocolIcon";
 import { ScreenHeader } from "./ScreenHeader";
 import "./ScreenLayout.css";
@@ -15,6 +23,22 @@ function offerDisplay(offer: ShopOffer): { name: string; description: string } {
   if (offer.kind === "card") return getCardById(offer.id);
   if (offer.kind === "module") return getModuleById(offer.id);
   return getInjectorById(offer.id);
+}
+
+function moduleGlyphKind(id: string): PixelModuleKind {
+  if (id === "nanite-reservoir") return "naniteReservoir";
+  if (id === "reflective-hull") return "reflectiveHull";
+  if (id === "priority-chip") return "priorityChip";
+  return "combatRecorder";
+}
+
+function injectorGlyphKind(id: string): PixelInjectorKind {
+  if (id === "overdrive-stim") return "overdriveStim";
+  if (id === "shield-injector") return "shieldInjector";
+  if (id === "combat-stimulant") return "combatStimulant";
+  if (id === "medgel") return "medgel";
+  if (id === "reactor-booster") return "reactorBooster";
+  return "empInjector";
 }
 
 export function ShopScreen() {
@@ -33,7 +57,7 @@ export function ShopScreen() {
 
   return (
     <div className="screen-layout shop-screen">
-      <HudRoomBackdrop kind="shop" />
+      <RoomBackdrop kind="shop" />
       <ScreenHeader
         code="SUPPLY // TERMINAL"
         title="Терминал снабжения"
@@ -75,7 +99,17 @@ export function ShopScreen() {
           return (
             <div key={`${offer.kind}-${offer.id}`} className="equipment-item">
               <div className="equipment-glyph">
-                {offer.kind === "module" ? <ModuleIcon /> : <InjectorIcon />}
+                {offer.kind === "module" ? (
+                  <span className="equipment-icon-stack">
+                    <ModuleIcon className="equipment-icon-line" />
+                    <PixelModuleGlyph className="equipment-icon-pixel" kind={moduleGlyphKind(offer.id)} />
+                  </span>
+                ) : (
+                  <span className="equipment-icon-stack">
+                    <InjectorIcon className="equipment-icon-line" />
+                    <PixelInjectorGlyph className="equipment-icon-pixel" kind={injectorGlyphKind(offer.id)} />
+                  </span>
+                )}
               </div>
               <div className="equipment-copy">
                 <div className="offer-type">{offer.kind === "module" ? "Модуль" : "Инъектор · одноразовый"}</div>

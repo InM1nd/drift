@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { HudRoomBackdrop } from "./HudRoomBackdrop";
+import { RoomBackdrop } from "./RoomBackdrop";
 import { SettingsPanel } from "./SettingsPanel";
 import "./ScreenLayout.css";
 import "./StartScreen.css";
@@ -26,7 +26,7 @@ export function StartScreen({ canContinue, savedSummary, threatLevelsUnlocked, o
 
   return (
     <div className="screen-layout start-screen">
-      <HudRoomBackdrop kind="map" />
+      <RoomBackdrop kind="map" />
       <h1 className="start-screen-title">ДРЕЙФ</h1>
 
       {view === "settings" ? (
