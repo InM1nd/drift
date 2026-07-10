@@ -4,6 +4,9 @@ import { getCardById } from "../data/cards";
 import { getModuleById } from "../data/modules";
 import { getInjectorById } from "../data/injectors";
 import type { ShopOffer } from "../types";
+import { HudRoomBackdrop } from "./HudRoomBackdrop";
+import { CreditsIcon, InjectorIcon, ModuleIcon } from "./icons";
+import { ProtocolIcon } from "./ProtocolIcon";
 import { ScreenHeader } from "./ScreenHeader";
 import "./ScreenLayout.css";
 
@@ -24,22 +27,28 @@ export function ShopScreen() {
   const [pendingRemoveIndex, setPendingRemoveIndex] = useState<number | null>(null);
 
   const removalPrice = REMOVAL_BASE_PRICE + REMOVAL_PRICE_STEP * removalsUsed;
+  const protocolOffers = shopOffers.filter((offer) => offer.kind === "card");
+  const equipmentOffers = shopOffers.filter((offer) => offer.kind !== "card");
 
   return (
     <div className="screen-layout shop-screen">
+      <HudRoomBackdrop kind="shop" />
       <ScreenHeader
         code="SUPPLY // TERMINAL"
         title="Терминал снабжения"
-        aside={<div className="credits-bar"><small>Баланс</small>₡ {credits}</div>}
+        aside={<div className="credits-bar"><small><CreditsIcon /> Баланс</small>₡ {credits}</div>}
       />
 
-      <div className="section-heading"><span>Доступные лоты</span><small>{shopOffers.length} шт.</small></div>
+      <div className="section-heading"><span>Протоколы</span><small>{protocolOffers.length} шт.</small></div>
       <div className="shop-grid">
-        {shopOffers.map((offer) => {
+        {protocolOffers.map((offer) => {
           const { name, description } = offerDisplay(offer);
           const affordable = credits >= offer.price;
           return (
             <div key={`${offer.kind}-${offer.id}`} className="shop-item">
+              <div className="offer-type">
+                <ProtocolIcon type={getCardById(offer.id).type} />
+              </div>
               <div className="card-name">{name}</div>
               <div className="card-desc">{description}</div>
               <button
@@ -54,7 +63,37 @@ export function ShopScreen() {
             </div>
           );
         })}
-        {shopOffers.length === 0 && <p className="screen-hint">Ассортимент распродан.</p>}
+        {protocolOffers.length === 0 && <p className="screen-hint">Новых Протоколов нет.</p>}
+      </div>
+
+      <div className="section-heading"><span>Оснастка</span><small>{equipmentOffers.length} шт.</small></div>
+      <div className="equipment-grid">
+        {equipmentOffers.map((offer) => {
+          const { name, description } = offerDisplay(offer);
+          const affordable = credits >= offer.price;
+          return (
+            <div key={`${offer.kind}-${offer.id}`} className="equipment-item">
+              <div className="equipment-glyph">
+                {offer.kind === "module" ? <ModuleIcon /> : <InjectorIcon />}
+              </div>
+              <div className="equipment-copy">
+                <div className="offer-type">{offer.kind === "module" ? "Модуль" : "Инъектор · одноразовый"}</div>
+                <div className="card-name">{name}</div>
+                <div className="card-desc">{description}</div>
+              </div>
+              <button
+                type="button"
+                className="primary-button"
+                disabled={!affordable}
+                title={affordable ? `Купить за ₡ ${offer.price}` : "Недостаточно кредитов"}
+                onClick={() => buyShopOffer(offer)}
+              >
+                ₡ {offer.price}
+              </button>
+            </div>
+          );
+        })}
+        {equipmentOffers.length === 0 && <p className="screen-hint">Оснастка распродана.</p>}
       </div>
 
       <div className="section-heading"><span>Очистка колоды</span><small>₡ {removalPrice}</small></div>

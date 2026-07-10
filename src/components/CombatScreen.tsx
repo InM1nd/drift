@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { useMachine } from "@xstate/react";
 import { combatMachine } from "../engine/combatMachine";
 import { createInitialCombatState } from "../engine/combatState";
@@ -10,8 +10,11 @@ import { getInjectorById } from "../data/injectors";
 import { getMapNodeById } from "../data/mapNodes";
 import { useRunStore } from "../state/runStore";
 import { EnemySprite, PlayerSprite } from "./CombatSprite";
+import { CardEffectSummary, EffectLegend } from "./CardEffectSummary";
 import { DevPanel } from "./DevPanel";
-import { AttackIcon, RepairIcon, ShieldIcon } from "./icons";
+import { HudRoomBackdrop } from "./HudRoomBackdrop";
+import { AttackIcon, DiscardIcon, DrawIcon, EnergyIcon, HullIcon, InjectorIcon, RepairIcon, ShieldIcon } from "./icons";
+import { ProtocolIcon } from "./ProtocolIcon";
 import { StatusChips } from "./StatusChips";
 import { STATUS_ICONS } from "./statusIcons";
 import "./CombatScreen.css";
@@ -33,6 +36,10 @@ function cardEffectiveCost(cardId: string, combat: CombatState): number {
   const card = getCardById(cardId);
   if (card.cost === "X") return combat.player.energy;
   return Math.max(0, card.cost - combat.player.nextCardCostReduction);
+}
+
+function usesTouchInspection(): boolean {
+  return window.matchMedia("(hover: none), (pointer: coarse)").matches || navigator.maxTouchPoints > 0;
 }
 
 function intentFor(enemy: EnemyCombatantState, combat: CombatState): { icon: ReactNode; text: ReactNode } | null {
@@ -92,23 +99,20 @@ export function CombatScreen() {
   const isPlayerTurn = state.value === "playerTurn";
   const phaseLabel = PHASE_LABELS[String(state.value)] ?? String(state.value);
   const activeEnemyCount = combat.enemies.filter((enemy) => enemy.hp > 0).length;
-  const targetCode =
-    combat.targetEnemyIndex === null
-      ? "TGT-N/A"
-      : `TGT-${String(combat.targetEnemyIndex + 1).padStart(2, "0")}`;
   const selectedCardId = combat.selectedHandIndex === null ? null : combat.hand[combat.selectedHandIndex];
   const selectedInjectorId =
     combat.selectedInjectorIndex === null ? null : combat.injectors[combat.selectedInjectorIndex];
   const selectedCard = selectedCardId ? getCardById(selectedCardId) : null;
   const selectedInjector = selectedInjectorId ? getInjectorById(selectedInjectorId) : null;
-  const selectedAction = selectedCard?.name ?? selectedInjector?.name ?? "Протокол не выбран";
+  const selectedAction = selectedCard?.name ?? selectedInjector?.name ?? "Действие не выбрано";
   const playerHpPercent = Math.max(0, (combat.player.hp / combat.player.maxHp) * 100);
   const playerEnergyPercent = Math.max(0, (combat.player.energy / combat.player.maxEnergy) * 100);
   const [combatNotice, setCombatNotice] = useState<{ text: string; kind: "system" | "warning" | "damage" } | null>(null);
+  const [inspectedCardIndex, setInspectedCardIndex] = useState<number | null>(null);
   const selectedCardNeedsTarget = selectedCardId ? cardNeedsTarget(selectedCardId) : false;
   const targetingActive = selectedCardNeedsTarget || selectedInjector !== null;
   const lowHull = playerHpPercent <= 30;
-  const targetingLabel = targetingActive ? "Выбери цель для подтверждения." : targetCode;
+  const actionSummary = targetingActive ? `Цель для: ${selectedAction}` : selectedAction;
   const hasStatuses =
     Object.keys(combat.player.statuses).length > 0 || combat.enemies.some((enemy) => Object.keys(enemy.statuses).length > 0);
   const logPulse = useMemo(() => {
@@ -165,18 +169,27 @@ export function CombatScreen() {
     send({ type: "SELECT_CARD", index });
   }
 
+  function handleCardActivate(index: number) {
+    if (usesTouchInspection() && inspectedCardIndex !== index) {
+      setInspectedCardIndex(index);
+      return;
+    }
+    setInspectedCardIndex(null);
+    handleSelectCard(index);
+  }
+
   return (
-    <div className="combat-screen">
+    <div className={`combat-screen${lowHull ? " low-hull" : ""}`}>
       <header className="top-bar">
         <span className="turn-index"><small>Цикл</small>{String(combat.turn + 1).padStart(2, "0")}</span>
         <span className="location"><small>Сектор</small><strong>{node.label}</strong></span>
         <span className="phase"><i aria-hidden="true" />{phaseLabel}</span>
       </header>
 
-      <section className="combat-theatre" aria-label="Сканирующая область">
+      <section className={`combat-theatre room-context-${node.type}`} aria-label="Сканирующая область">
+        <HudRoomBackdrop kind={node.type} seed={node.id} />
         <div className="scanner-telemetry">
           <span>Сканер // контактов {activeEnemyCount}</span>
-          <span>{targetingLabel}</span>
         </div>
         <div className={`enemy-zone${targetingActive ? " targeting" : ""}`}>
           {combat.enemies.map((enemy, i) => {
@@ -198,14 +211,16 @@ export function CombatScreen() {
               >
                 <div className="enemy-meta">
                   <span>#{String(i + 1).padStart(2, "0")}</span>
-                  {intent && (
-                    <span className="enemy-intent" title="Намерение противника на следующий ход">
-                      {intent.icon} {intent.text}
-                    </span>
-                  )}
+                  <span>CONTACT // TRACKED</span>
                 </div>
                 <EnemySprite enemyId={enemy.enemyId} hp={enemy.hp} />
                 <div className="enemy-name">{enemy.name}</div>
+                {intent ? (
+                  <div className="enemy-intent" title="Намерение противника на следующий ход">
+                    <small>След. действие</small>
+                    <span>{intent.icon} {intent.text}</span>
+                  </div>
+                ) : null}
                 <div className="hp-label"><span>Корпус</span><span>{Math.max(0, enemy.hp)}/{enemy.maxHp}</span></div>
                 <div className="hp-bar">
                   <div className="hp-fill" style={{ width: `${Math.max(0, (enemy.hp / enemy.maxHp) * 100)}%` }} />
@@ -232,17 +247,17 @@ export function CombatScreen() {
             <PlayerSprite />
             <div className="player-status">
               <div className="vital vital-hp">
-                <span className="vital-label">Корпус</span>
+                <span className="vital-label"><HullIcon /> Корпус</span>
                 <strong>{combat.player.hp}<small>/{combat.player.maxHp}</small></strong>
                 <span className="vital-track"><i style={{ width: `${playerHpPercent}%` }} /></span>
               </div>
               <div className="vital vital-shield">
-                <span className="vital-label">Щит</span>
+                <span className="vital-label"><ShieldIcon /> Щит</span>
                 <strong>{combat.player.shield}</strong>
                 <ShieldIcon className="vital-icon" />
               </div>
               <div className="vital vital-energy">
-                <span className="vital-label">Заряд</span>
+                <span className="vital-label"><EnergyIcon /> Заряд</span>
                 <strong>{combat.player.energy}<small>/{combat.player.maxEnergy}</small></strong>
                 <span className="vital-track"><i style={{ width: `${playerEnergyPercent}%` }} /></span>
               </div>
@@ -268,9 +283,57 @@ export function CombatScreen() {
           </div>
         )}
 
+        {combat.injectors.length > 0 && (
+          <section className="consumable-bay" aria-label="Одноразовые инъекторы">
+            <div className="consumable-bay-heading">
+              <InjectorIcon className="consumable-bay-icon" />
+              <span><small>AUX // ONE-SHOT</small><strong>Инъекторы</strong></span>
+              <em>{combat.injectors.length}</em>
+            </div>
+            <div className="injector-rack">
+              {combat.injectors.map((injectorId, i) => {
+                const injector = getInjectorById(injectorId);
+                return (
+                  <button
+                    key={`${injectorId}-${i}`}
+                    type="button"
+                    aria-label={`Использовать одноразовый инъектор: ${injector.name}. ${injector.description}`}
+                    aria-pressed={combat.selectedInjectorIndex === i}
+                    className={`injector ${combat.selectedInjectorIndex === i ? "selected" : ""}`}
+                    onClick={() => send({ type: "SELECT_INJECTOR", index: i })}
+                    disabled={!isPlayerTurn}
+                    title={`${injector.name} — ${injector.description}`}
+                  >
+                    <span className="injector-code">INJ-{String(i + 1).padStart(2, "0")}</span>
+                    <InjectorIcon className="injector-icon" />
+                    <span className="injector-copy">
+                      <strong>{injector.name}</strong>
+                      <small>{injector.description}</small>
+                    </span>
+                    <span className="single-use">1×</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         <div className="console-heading">
-          <span><small>Контур управления</small>Протоколы</span>
-          <span className="energy-readout">{targetingActive ? "Режим наведения активен" : "Выбор действий"}</span>
+          <span><small>Контур управления</small>Протоколы · {combat.hand.length}</span>
+          <div className="console-tools">
+            <span
+              className="deck-readout"
+              aria-label={`В колоде ${combat.drawPile.length}, в сбросе ${combat.discardPile.length}`}
+              title={`Колода: ${combat.drawPile.length} · Сброс: ${combat.discardPile.length}`}
+            >
+              <span><DrawIcon /><small>Колода</small><strong key={`draw-${combat.drawPile.length}`}>{combat.drawPile.length}</strong></span>
+              <span><DiscardIcon /><small>Сброс</small><strong key={`discard-${combat.discardPile.length}`}>{combat.discardPile.length}</strong></span>
+            </span>
+            <span className={`console-mode${targetingActive ? " targeting" : ""}`}>
+              {targetingActive ? "Выбери цель в секторе" : "Готов к вводу"}
+            </span>
+            <EffectLegend />
+          </div>
         </div>
 
         <div className="hand-row">
@@ -281,43 +344,49 @@ export function CombatScreen() {
                 key={i}
                 type="button"
                 aria-pressed={combat.selectedHandIndex === i}
+                aria-describedby={`card-tooltip-${i}`}
+                style={{ "--card-order": i } as CSSProperties}
                 className={`card ${combat.selectedHandIndex === i ? "selected" : ""} ${
+                  inspectedCardIndex === i ? "inspected" : ""
+                } ${
                   getCardById(cardId).cost !== "X" && combat.player.energy < cardEffectiveCost(cardId, combat) ? "insufficient" : ""
                 }`}
-                onClick={() => handleSelectCard(i)}
+                onBlur={() => {
+                  if (!usesTouchInspection()) setInspectedCardIndex(null);
+                }}
+                onClick={() => handleCardActivate(i)}
+                onFocus={() => {
+                  if (!usesTouchInspection()) setInspectedCardIndex(i);
+                }}
+                onPointerEnter={(event) => {
+                  if (event.pointerType === "mouse") setInspectedCardIndex(i);
+                }}
+                onPointerLeave={(event) => {
+                  if (event.pointerType === "mouse") setInspectedCardIndex(null);
+                }}
                 disabled={!isPlayerTurn}
               >
-                <div className="card-header"><span>{String(i + 1).padStart(2, "0")}</span><div className="card-cost"><small>ЗРД</small>{card.cost}</div></div>
+                <div className="card-header">
+                  <div className="card-index">
+                    <span>{String(i + 1).padStart(2, "0")}</span>
+                    <ProtocolIcon compact type={card.type} />
+                  </div>
+                  <div className="card-cost"><small>ЗРД</small>{card.cost}</div>
+                </div>
                 <div className="card-name">{card.name}</div>
-                <div className="card-desc">{card.description}</div>
+                <CardEffectSummary card={card} />
+                <span className="card-tooltip" id={`card-tooltip-${i}`} role="tooltip">
+                  <strong>{card.name}</strong>
+                  <span>{card.description}</span>
+                  <small>Нажатие активирует Протокол</small>
+                </span>
               </button>
             );
           })}
         </div>
 
-        {combat.injectors.length > 0 && (
-          <div className="injector-row">
-            {combat.injectors.map((injectorId, i) => {
-              const injector = getInjectorById(injectorId);
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  aria-pressed={combat.selectedInjectorIndex === i}
-                  className={`injector ${combat.selectedInjectorIndex === i ? "selected" : ""}`}
-                  onClick={() => send({ type: "SELECT_INJECTOR", index: i })}
-                  disabled={!isPlayerTurn}
-                >
-                  <div className="card-name">{injector.name}</div>
-                  <div className="card-desc">{injector.description}</div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
         <div className="console-footer">
-          <div className="selection-readout"><small>Активный протокол</small><strong>{selectedAction}</strong></div>
+          <div className="selection-readout"><small>Командная строка</small><strong>{actionSummary}</strong></div>
           <button
             type="button"
             className="end-turn"

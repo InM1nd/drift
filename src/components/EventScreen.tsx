@@ -1,4 +1,5 @@
 import { useRunStore } from "../state/runStore";
+import { HudRoomBackdrop } from "./HudRoomBackdrop";
 import { ScreenHeader } from "./ScreenHeader";
 import "./ScreenLayout.css";
 
@@ -10,6 +11,7 @@ export function EventScreen() {
 
   return (
     <div className="screen-layout event-screen">
+      <HudRoomBackdrop kind="signal" />
       <ScreenHeader code="SIGNAL // UNKNOWN SOURCE" title="Сигнал" />
       {signalOutcome ? (
         <>

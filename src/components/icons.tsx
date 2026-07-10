@@ -102,3 +102,61 @@ export function RestIcon(props: IconProps) {
 export function BossIcon(props: IconProps) {
   return <IconFrame {...props}><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="3" /><path d="M12 2v3m0 14v3M2 12h3m14 0h3" /></IconFrame>;
 }
+
+export function HullIcon(props: IconProps) {
+  return <IconFrame {...props}><path d="M4 5h16l-2 12-6 3-6-3L4 5Zm3 4h10M8 13h8" /></IconFrame>;
+}
+
+export function EnergyIcon(props: IconProps) {
+  return <IconFrame {...props}><path d="M13 2 5 14h6l-1 8 9-13h-6V2Z" /></IconFrame>;
+}
+
+export function CreditsIcon(props: IconProps) {
+  return (
+    <IconFrame {...props}>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M15.5 8.5A5 5 0 1 0 15.5 15.5M8 12h7M12 5v14" />
+    </IconFrame>
+  );
+}
+
+export function ThreatIcon(props: IconProps) {
+  return <IconFrame {...props}><path d="m12 3 9 16H3L12 3Zm0 5v5m0 3v.5" /></IconFrame>;
+}
+
+export function SkillIcon(props: IconProps) {
+  return <IconFrame {...props}><path d="M4 12h4l2-6 4 12 2-6h4M5 4h14v16H5Z" /></IconFrame>;
+}
+
+export function PowerIcon(props: IconProps) {
+  return <IconFrame {...props}><path d="m12 2 8 5v10l-8 5-8-5V7l8-5Zm0 5v5l4 2" /></IconFrame>;
+}
+
+export function DrawIcon(props: IconProps) {
+  return <IconFrame {...props}><path d="M5 5h11v14H5V5Zm3-3h11v14M9 9h3m-3 4h5" /></IconFrame>;
+}
+
+export function DiscardIcon(props: IconProps) {
+  return <IconFrame {...props}><path d="M5 5h11v14H5V5Zm4 4 4 4m0-4-4 4M8 2h11v14" /></IconFrame>;
+}
+
+export function InjectorIcon(props: IconProps) {
+  return <IconFrame {...props}><path d="m14 4 6 6M16 2l6 6M5 19l8-8 3 3-8 8H5v-3Zm1-4 3 3" /></IconFrame>;
+}
+
+export function ModuleIcon(props: IconProps) {
+  return (
+    <IconFrame {...props}>
+      <path d="M7 7h10v10H7ZM9 2v5m6-5v5M9 17v5m6-5v5M2 9h5m10 0h5M2 15h5m10 0h5" />
+      <circle cx="12" cy="12" r="2" />
+    </IconFrame>
+  );
+}
+
+export function LootIcon(props: IconProps) {
+  return <IconFrame {...props}><path d="M4 8h16v11H4V8Zm2-4h12l2 4H4l2-4Zm3 8h6m-3-3v6" /></IconFrame>;
+}
+
+export function UpgradeIcon(props: IconProps) {
+  return <IconFrame {...props}><path d="m12 3 5 5h-3v6h-4V8H7l5-5ZM5 17h14v4H5Z" /></IconFrame>;
+}

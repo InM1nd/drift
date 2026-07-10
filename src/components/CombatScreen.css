@@ -21,6 +21,7 @@
 }
 
 .top-bar {
+  z-index: 9;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: stretch;
@@ -96,6 +97,7 @@
 
 .combat-theatre {
   position: relative;
+  z-index: 1;
   width: 100%;
   min-width: 0;
   min-height: clamp(17rem, 38dvh, 31rem);
@@ -179,7 +181,7 @@
   flex-direction: column;
   align-items: stretch;
   min-width: min(11rem, 100%);
-  min-height: 9rem;
+  min-height: 10rem;
   border: 1px solid var(--line);
   background: var(--panel);
   color: var(--ink);
@@ -263,16 +265,34 @@
 }
 
 .enemy-intent {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.2rem;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+  padding: 0.3rem 0;
+  border-top: 1px solid color-mix(in srgb, var(--danger) 28%, var(--line));
+  border-bottom: 1px solid color-mix(in srgb, var(--danger) 18%, transparent);
   color: var(--danger);
   font-family: var(--mono);
-  font-size: 0.7rem;
+}
+
+.enemy-intent small {
+  color: var(--ink-soft);
+  font-size: 0.48rem;
+  text-transform: uppercase;
+}
+
+.enemy-intent > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.24rem;
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
 .enemy-name {
-  margin: auto 0 0.65rem;
+  margin: auto 0 0.35rem;
   padding-top: 1.5rem;
   font-size: 0.9rem;
   font-weight: 800;
@@ -350,10 +370,12 @@
 
 .cockpit-console {
   position: relative;
+  z-index: 8;
   width: 100%;
   min-width: 0;
   border-top: 1px solid var(--line);
-  background: color-mix(in srgb, var(--panel) 84%, var(--bg));
+  background: color-mix(in srgb, var(--panel) 96%, var(--bg));
+  box-shadow: 0 -1.5rem 3.5rem color-mix(in srgb, var(--bg) 68%, transparent);
 }
 
 .console-status {
@@ -396,6 +418,7 @@
 }
 
 .vital-label {
+  display: inline-flex;
   align-self: end;
   color: var(--ink-soft);
   font-size: 0.57rem;
@@ -426,12 +449,20 @@
 .vital-track i {
   display: block;
   height: 100%;
-  background: var(--accent);
+  background: var(--ink);
 }
 
 .vital-energy strong,
-.energy-readout,
 .vital-energy .vital-label {
+  color: var(--energy);
+}
+
+.console-mode {
+  color: var(--ink-soft);
+  font-size: 0.56rem;
+}
+
+.console-mode.targeting {
   color: var(--energy);
 }
 
@@ -516,7 +547,13 @@
   text-transform: uppercase;
 }
 
+.end-turn:active {
+  transform: scale(0.98);
+}
+
 .console-heading {
+  position: relative;
+  z-index: 15;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -535,8 +572,142 @@
   gap: 0.5rem;
 }
 
-.hand-row,
-.injector-row {
+.console-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.deck-readout {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-family: var(--mono);
+}
+
+.deck-readout > span {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  column-gap: 0.25rem;
+  padding: 0.22rem 0.42rem;
+}
+
+.deck-readout > span + span {
+  border-left: 1px solid var(--line);
+}
+
+.deck-readout .game-icon {
+  grid-row: 1 / 3;
+  width: 0.9rem;
+  height: 0.9rem;
+  color: var(--accent);
+}
+
+.deck-readout small {
+  font-size: 0.4rem;
+  line-height: 1;
+}
+
+.deck-readout strong {
+  color: var(--ink);
+  font-size: 0.64rem;
+  line-height: 1;
+}
+
+.effect-legend {
+  position: static;
+  font-family: var(--mono);
+  font-weight: 500;
+}
+
+.effect-legend summary {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  padding: 0.18rem 0.45rem;
+  font-size: 0.5rem;
+  letter-spacing: 0.04em;
+  list-style: none;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.effect-legend summary::-webkit-details-marker {
+  display: none;
+}
+
+.effect-legend[open] summary {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.effect-legend-menu {
+  position: absolute;
+  z-index: 35;
+  right: 0.75rem;
+  bottom: calc(100% + 0.35rem);
+  width: min(30rem, calc(100% - 1.5rem));
+  max-height: min(27rem, calc(100vh - 7rem));
+  overflow-y: auto;
+  border: 1px solid var(--accent);
+  background: color-mix(in srgb, var(--panel) 22%, var(--bg));
+  padding: 0.65rem;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--bg) 82%, transparent), 0 0.8rem 2.2rem color-mix(in srgb, var(--bg) 78%, transparent);
+  transform-origin: bottom right;
+}
+
+.effect-legend-kicker {
+  display: block;
+  margin-bottom: 0.55rem;
+  color: var(--accent);
+  font-size: 0.48rem;
+  letter-spacing: 0.06em;
+}
+
+.effect-legend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.effect-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 62%, transparent);
+  padding: 0.28rem 0;
+  color: var(--ink);
+  font-size: 0.58rem;
+}
+
+.effect-legend-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.effect-legend-copy strong {
+  color: var(--ink);
+  font-size: 0.56rem;
+  text-transform: uppercase;
+}
+
+.effect-legend-copy small {
+  color: var(--ink-soft);
+  font-size: 0.48rem;
+  font-weight: 400;
+  line-height: 1.35;
+  text-transform: none;
+}
+
+.hand-row {
   display: flex;
   width: 100%;
   min-width: 0;
@@ -548,16 +719,77 @@
   padding: 0.55rem 0.75rem 0.7rem;
 }
 
-.injector-row {
-  padding-top: 0;
+.consumable-bay {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-width: 0;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--energy) 3%, transparent);
 }
 
-.card,
-.injector {
+.consumable-bay-heading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 9.5rem;
+  padding: 0.48rem 0.65rem;
+  border-right: 1px solid var(--line);
+  color: var(--energy);
+  font-family: var(--mono);
+  text-transform: uppercase;
+}
+
+.consumable-bay-heading > span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+}
+
+.consumable-bay-heading small {
+  color: var(--ink-soft);
+  font-size: 0.47rem;
+  font-weight: 500;
+}
+
+.consumable-bay-heading strong {
+  font-size: 0.66rem;
+}
+
+.consumable-bay-heading em {
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 1px solid color-mix(in srgb, var(--energy) 48%, var(--line));
+  font-size: 0.62rem;
+  font-style: normal;
+}
+
+.consumable-bay-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.injector-rack {
+  display: flex;
+  min-width: 0;
+  gap: 0.45rem;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-color: var(--line) transparent;
+  padding: 0.4rem 0.65rem;
+}
+
+.card {
+  position: relative;
   appearance: none;
+  display: flex;
   flex: 0 0 auto;
+  flex-direction: column;
   width: 8.7rem;
   min-height: 7.35rem;
+  overflow: hidden;
   scroll-snap-align: start;
   border: 1px solid var(--line);
   background: var(--panel);
@@ -567,15 +799,221 @@
   transition: border-color 140ms ease, filter 140ms ease, transform 140ms ease;
 }
 
-.card.selected,
-.injector.selected {
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 32%;
+  height: 1px;
+  background: var(--accent);
+  opacity: 0;
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 120ms ease;
+}
+
+.card:hover::before,
+.card:focus-visible::before,
+.card.inspected::before {
+  opacity: 0.8;
+  transform: translateX(430%);
+}
+
+.card.selected {
   border-color: var(--accent);
   transform: translateY(-3px);
 }
 
+.injector {
+  appearance: none;
+  display: grid;
+  grid-template-columns: auto auto minmax(6rem, 1fr) auto;
+  align-items: center;
+  flex: 0 0 min(15rem, 78vw);
+  gap: 0.45rem;
+  min-height: 3.15rem;
+  border: 1px solid color-mix(in srgb, var(--energy) 42%, var(--line));
+  background: color-mix(in srgb, var(--panel) 92%, var(--energy));
+  color: var(--ink);
+  padding: 0.38rem 0.48rem;
+  text-align: left;
+  transition: border-color 140ms ease, filter 140ms ease, background-color 140ms ease;
+}
+
+.injector:hover,
+.injector.selected {
+  border-color: var(--energy);
+  background: color-mix(in srgb, var(--energy) 9%, var(--panel));
+}
+
+.injector-code,
+.single-use {
+  color: var(--energy);
+  font-family: var(--mono);
+  font-size: 0.48rem;
+  text-transform: uppercase;
+}
+
+.injector-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--energy);
+}
+
+.injector-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.injector-copy strong,
+.injector-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.injector-copy strong {
+  color: var(--ink);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+}
+
+.injector-copy small {
+  color: var(--ink-soft);
+  font-size: 0.52rem;
+}
+
+.single-use {
+  display: grid;
+  place-items: center;
+  min-width: 1.45rem;
+  min-height: 1.45rem;
+  border: 1px solid color-mix(in srgb, var(--energy) 42%, var(--line));
+}
+
 .card.insufficient {
-  border-style: dashed;
+  border-style: solid;
   border-color: color-mix(in srgb, var(--energy) 40%, var(--line));
+  background: color-mix(in srgb, var(--panel) 94%, var(--energy));
+  filter: saturate(0.58);
+}
+
+.card.insufficient .card-cost {
+  color: var(--energy);
+}
+
+.card-effects {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: auto;
+  padding-top: 0.65rem;
+}
+
+.effect-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.16rem;
+  min-height: 1.55rem;
+  color: var(--ink);
+  font-family: var(--mono);
+}
+
+.effect-chip > .game-icon,
+.effect-chip > .status-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.effect-chip strong {
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.effect-chip small {
+  align-self: flex-end;
+  color: var(--ink-soft);
+  font-size: 0.4rem;
+  letter-spacing: 0.04em;
+}
+
+.effect-damage { color: var(--danger); }
+.effect-block,
+.effect-draw { color: var(--accent); }
+.effect-heal { color: var(--status-corrosion); }
+.effect-energy { color: var(--energy); }
+.effect-discard { color: var(--ink-soft); }
+
+.effect-tag {
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  padding: 0.12rem 0.25rem;
+  font-family: var(--mono);
+  font-size: 0.45rem;
+}
+
+.card-tooltip {
+  position: absolute;
+  z-index: 8;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.45rem;
+  visibility: hidden;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent 48%),
+    color-mix(in srgb, var(--panel) 24%, var(--bg));
+  color: var(--ink);
+  padding: 0.75rem;
+  opacity: 0;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 46%, var(--line));
+  text-align: left;
+  transform: translateY(4px);
+  transition: opacity 120ms ease, transform 120ms ease, visibility 120ms;
+  pointer-events: none;
+}
+
+.card-tooltip::before {
+  content: "CARD // INSPECT";
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 0.43rem;
+  letter-spacing: 0.06em;
+}
+
+.card-tooltip strong {
+  color: var(--ink);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.card-tooltip > span {
+  color: var(--ink-soft);
+  font-size: 0.62rem;
+  line-height: 1.42;
+}
+
+.card-tooltip small {
+  color: var(--energy);
+  font-size: 0.45rem;
+  text-transform: uppercase;
+}
+
+.card.inspected .card-tooltip {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover .card-tooltip {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .card-header {
@@ -586,6 +1024,16 @@
   color: var(--ink-soft);
   font-family: var(--mono);
   font-size: 0.54rem;
+}
+
+.card-index {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.card-index > span:first-child {
+  color: var(--ink-soft);
 }
 
 .card-cost {
@@ -621,7 +1069,7 @@
 
 .console-footer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: stretch;
   border-top: 1px solid var(--line);
 }
@@ -645,6 +1093,8 @@
 }
 
 .end-turn {
+  grid-column: 2;
+  justify-self: center;
   min-width: 10.5rem;
   margin: -1px -1px -1px 0;
   border-color: var(--accent);
@@ -698,6 +1148,14 @@
     linear-gradient(transparent calc(50% - 1px), color-mix(in srgb, var(--accent) 10%, transparent) 50%, transparent calc(50% + 1px));
 }
 
+:root[data-visual-style="hud"] .combat-theatre.room-context-elite {
+  box-shadow: inset 0 0 7rem color-mix(in srgb, var(--energy) 5%, transparent);
+}
+
+:root[data-visual-style="hud"] .combat-theatre.room-context-boss {
+  box-shadow: inset 0 0 9rem color-mix(in srgb, var(--danger) 7%, transparent);
+}
+
 :root[data-visual-style="hud"] .combat-theatre::before,
 :root[data-visual-style="hud"] .combat-theatre::after {
   content: "";
@@ -729,6 +1187,10 @@
   border-color: var(--line);
 }
 
+:root[data-visual-style="hud"] .enemy {
+  background: color-mix(in srgb, var(--panel) 96%, var(--bg));
+}
+
 :root[data-visual-style="hud"] .enemy.targeted,
 :root[data-visual-style="hud"] .card.selected,
 :root[data-visual-style="hud"] .injector.selected,
@@ -739,8 +1201,25 @@
   filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent) 60%, transparent));
 }
 
+:root[data-visual-style="hud"] .injector.selected,
+:root[data-visual-style="hud"] .injector:focus-visible {
+  border-color: var(--energy);
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--energy) 48%, transparent));
+}
+
 :root[data-visual-style="hud"] .enemy-zone.targeting {
   animation: target-acquisition 900ms ease-in-out infinite alternate;
+}
+
+:root[data-visual-style="hud"] .top-bar,
+:root[data-visual-style="hud"] .scanner-telemetry,
+:root[data-visual-style="hud"] .scanner-footer,
+:root[data-visual-style="hud"] .enemy-name,
+:root[data-visual-style="hud"] .console-heading,
+:root[data-visual-style="hud"] .card-name,
+:root[data-visual-style="hud"] .protocol-type,
+:root[data-visual-style="hud"] .vital-label {
+  letter-spacing: 0.04em;
 }
 
 :root[data-visual-style="hud"] .enemy.targeted {
@@ -748,7 +1227,28 @@
 }
 
 :root[data-visual-style="hud"] .hp-fill {
-  background: linear-gradient(90deg, var(--accent), var(--hud-hp-glow));
+  background: var(--ink-soft);
+}
+
+:root[data-visual-style="hud"] .enemy.targeted .hp-fill {
+  background: var(--accent);
+}
+
+:root[data-visual-style="hud"] .enemy.damaged:not(.targeted) .hp-fill {
+  background: color-mix(in srgb, var(--danger) 72%, var(--ink-soft));
+}
+
+:root[data-visual-style="hud"] .combat-screen.low-hull::before {
+  border-color: color-mix(in srgb, var(--danger) 46%, transparent);
+}
+
+:root[data-visual-style="hud"] .combat-screen.low-hull .vital-hp strong,
+:root[data-visual-style="hud"] .combat-screen.low-hull .vital-hp .vital-label {
+  color: var(--danger);
+}
+
+:root[data-visual-style="hud"] .combat-screen.low-hull .vital-hp .vital-track i {
+  background: var(--danger);
 }
 
 :root[data-visual-style="hud"] .status-chip {
@@ -763,6 +1263,19 @@
   :root[data-visual-style="hud"] .phase i {
     animation: signal-pulse 1.8s ease-out infinite;
   }
+
+  :root[data-visual-style="hud"] .card {
+    animation: card-deal-in 220ms cubic-bezier(0, 0, 0.2, 1) backwards;
+    animation-delay: calc(var(--card-order, 0) * 28ms);
+  }
+
+  .effect-legend[open] .effect-legend-menu {
+    animation: legend-reveal 180ms cubic-bezier(0, 0, 0.2, 1) both;
+  }
+
+  .deck-readout strong {
+    animation: data-tick 180ms cubic-bezier(0, 0, 0.2, 1) both;
+  }
 }
 
 @keyframes scan-drift {
@@ -776,6 +1289,27 @@
 @keyframes target-acquisition {
   from { outline-color: color-mix(in srgb, var(--accent) 14%, transparent); }
   to { outline-color: color-mix(in srgb, var(--accent) 42%, transparent); }
+}
+
+@keyframes card-deal-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes legend-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.985);
+  }
+}
+
+@keyframes data-tick {
+  from {
+    opacity: 0.3;
+    transform: translateY(-3px);
+  }
 }
 
 :root[data-visual-style="pixel"] .combat-screen {
@@ -987,8 +1521,7 @@
     font-size: 1rem;
   }
 
-  .card,
-  .injector { width: 9rem; }
+  .card { width: 9rem; }
 }
 
 @media (max-width: 50rem) {
@@ -1035,17 +1568,23 @@
 
   .enemy {
     flex-basis: min(12.5rem, 72vw);
-    min-height: 8rem;
+    min-height: 9rem;
   }
 
   :root[data-visual-style="hud"] .combat-theatre::before {
     width: 58vw;
     height: 58vw;
+    opacity: 0.58;
   }
 
   :root[data-visual-style="hud"] .combat-theatre::after {
     width: 34vw;
     height: 34vw;
+    opacity: 0.58;
+  }
+
+  .scanner-footer {
+    display: none;
   }
 
   .player-status {
@@ -1069,27 +1608,107 @@
   }
 
   .log {
-    max-height: 3.25rem;
+    grid-template-columns: minmax(0, 1fr);
+    max-height: 2.25rem;
+  }
+
+  .log-label {
+    display: none;
+  }
+
+  .log-lines {
+    padding: 0.38rem 0.65rem;
+    white-space: nowrap;
+  }
+
+  .log-lines div:not(:last-child) {
+    display: none;
   }
 
   .console-heading {
+    align-items: center;
+    gap: 0.4rem;
     padding-top: 0.48rem;
   }
 
-  .hand-row,
-  .injector-row {
+  .console-tools {
+    gap: 0.3rem;
+  }
+
+  .console-mode:not(.targeting),
+  .deck-readout > span:nth-child(2),
+  .deck-readout small {
+    display: none;
+  }
+
+  .deck-readout > span {
+    grid-template-columns: auto auto;
+    gap: 0.22rem;
+    padding: 0.3rem 0.38rem;
+  }
+
+  .deck-readout .game-icon {
+    grid-row: auto;
+  }
+
+  .effect-legend summary {
+    font-size: 0;
+  }
+
+  .effect-legend summary::after {
+    content: "Эффекты";
+    font-size: 0.5rem;
+  }
+
+  .effect-legend-menu {
+    max-height: min(19rem, calc(100vh - 6rem));
+  }
+
+  .effect-legend-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hand-row {
     padding-left: 0.65rem;
     padding-right: 0.65rem;
   }
 
-  .card,
-  .injector {
+  .card {
     width: 8.15rem;
     min-height: 7rem;
   }
 
+  .card-desc {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .consumable-bay {
+    grid-template-columns: 1fr;
+  }
+
+  .consumable-bay-heading {
+    min-width: 0;
+    padding-inline: 0.65rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .injector {
+    flex-basis: min(14rem, 84vw);
+  }
+
   .selection-readout {
     padding-left: 0.65rem;
+  }
+
+  .console-footer {
+    position: sticky;
+    z-index: 12;
+    bottom: 0;
+    background: color-mix(in srgb, var(--panel) 98%, var(--bg));
   }
 
   .end-turn {
@@ -1099,10 +1718,6 @@
 
 @media (max-width: 23rem) {
   .top-bar { font-size: 0.62rem; }
-
-  .scanner-footer span:nth-child(2) {
-    display: none;
-  }
 
   .vital {
     padding-inline: 0.38rem;
@@ -1125,7 +1740,10 @@
 @media (prefers-reduced-motion: reduce) {
   .enemy,
   .card,
-  .injector {
+  .injector,
+  .effect-legend-menu,
+  .deck-readout strong {
+    animation: none;
     transition: none;
   }
 }

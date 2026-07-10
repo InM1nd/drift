@@ -237,6 +237,53 @@
   text-align: left;
 }
 
+.equipment-grid {
+  display: grid;
+  gap: 0.5rem;
+  width: min(100%, 42rem);
+}
+
+.equipment-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 5rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 0.55rem;
+}
+
+.equipment-glyph {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 1px solid color-mix(in srgb, var(--energy) 42%, var(--line));
+  color: var(--energy);
+}
+
+.equipment-glyph .game-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.equipment-copy {
+  min-width: 0;
+}
+
+.equipment-copy .card-name {
+  margin-top: 0.2rem;
+}
+
+.equipment-copy .card-desc {
+  margin-top: 0.2rem;
+}
+
+.equipment-item .primary-button {
+  min-width: 5.25rem;
+}
+
 .shop-item .primary-button,
 .rest-choice .primary-button,
 .rest-choice .secondary-button {
@@ -257,6 +304,22 @@
   margin-right: 0.2rem;
   color: var(--energy);
   font-size: 0.52rem;
+}
+
+.card-offer-meta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.offer-type {
+  min-height: 1rem;
+}
+
+.rest-choice > .protocol-type,
+.reward-card > .protocol-type {
+  margin-bottom: 0.15rem;
 }
 
 .screen-layout .card-name {
@@ -416,7 +479,7 @@
 }
 
 .screen-health {
-  color: var(--accent);
+  color: var(--ink);
 }
 
 .deck-list {
@@ -605,6 +668,7 @@
 :root[data-visual-style="hud"] .skip-button,
 :root[data-visual-style="hud"] .reward-card,
 :root[data-visual-style="hud"] .shop-item,
+:root[data-visual-style="hud"] .equipment-item,
 :root[data-visual-style="hud"] .rest-choice,
 :root[data-visual-style="hud"] .map-node:not(.locked),
 :root[data-visual-style="hud"] .deck-list button {
@@ -616,8 +680,19 @@
   border-color: var(--accent);
 }
 
+:root[data-visual-style="hud"] .screen-kicker,
+:root[data-visual-style="hud"] .section-heading,
+:root[data-visual-style="hud"] .map-node,
+:root[data-visual-style="hud"] .card-name,
+:root[data-visual-style="hud"] .action-label,
+:root[data-visual-style="hud"] .offer-type,
+:root[data-visual-style="hud"] .protocol-type {
+  letter-spacing: 0.04em;
+}
+
 :root[data-visual-style="hud"] .reward-card:hover,
 :root[data-visual-style="hud"] .shop-item:hover,
+:root[data-visual-style="hud"] .equipment-item:hover,
 :root[data-visual-style="hud"] .rest-choice:hover,
 :root[data-visual-style="hud"] .map-node.current,
 :root[data-visual-style="hud"] .primary-button:focus-visible,
@@ -653,6 +728,7 @@
 :root[data-visual-style="pixel"] .skip-button,
 :root[data-visual-style="pixel"] .reward-card,
 :root[data-visual-style="pixel"] .shop-item,
+:root[data-visual-style="pixel"] .equipment-item,
 :root[data-visual-style="pixel"] .rest-choice,
 :root[data-visual-style="pixel"] .map-node,
 :root[data-visual-style="pixel"] .deck-list button,
@@ -770,6 +846,15 @@
     min-height: 7.75rem;
   }
 
+  .equipment-item {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .equipment-item .primary-button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
   .run-end-stats {
     grid-template-columns: 1fr;
   }
@@ -800,7 +885,8 @@
   }
 
   .map-icon {
-    display: none;
+    width: 0.78rem;
+    height: 0.78rem;
   }
 }
 
