@@ -1,11 +1,9 @@
 import type { CardData } from "../types";
 
 /**
- * Phase 1 slice: 2 стартовых + 8 представительных карт (2 на архетип).
- * Выбраны так, чтобы вместе покрыть каждую ветку модели эффектов:
- * фиксированное значение, два разных динамических ref, applyStatus,
- * draw, immediate-Power, trigger-Power (onTurnStart), exhaust, cost 0.
- * Полный список 30 карт — docs/03-cards.md.
+ * Полный ростер: 30 уникальных Протоколов + 30 «+»-версий (60 записей) —
+ * см. docs/03-cards.md. Апгрейд помечен `upgradeOf`, ×1.5 округление в
+ * пользу игрока (см. docs/12-content-recipes.md для правил добавления новых).
  */
 export const CARDS: CardData[] = [
   {

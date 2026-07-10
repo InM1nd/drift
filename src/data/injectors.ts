@@ -38,7 +38,7 @@ export const INJECTORS: PotionData[] = [
     effects: [{ kind: "gainEnergy", amount: 2 }],
   },
   {
-    id: "emp-grenade",
+    id: "emp-injector",
     name: "ЭМИ-граната",
     description: "Наложить 2 Помех на всех врагов.",
     targeted: false,

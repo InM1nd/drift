@@ -31,5 +31,4 @@ export interface EnemyData {
   hpRange: [number, number];
   moveset: EnemyAction[];
   pattern: EnemyPattern;
-  relicDropId?: string;
 }
