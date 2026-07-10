@@ -1,0 +1,98 @@
+- generic [ref=e155]:
+  - banner [ref=e156]:
+    - generic [ref=e157]:
+      - generic [ref=e158]: Цикл
+      - text: "01"
+    - generic [ref=e159]:
+      - generic [ref=e160]: Сектор
+      - strong [ref=e161]: Отсек
+    - generic [ref=e162]: Ваш ход
+  - region "Сканирующая область" [ref=e164]:
+    - button "#01 Турель обшивки След. действие 6" [ref=e166] [cursor=pointer]:
+      - generic [ref=e167]: "#01"
+      - generic [ref=e171]: Турель обшивки
+      - generic "Намерение противника на следующий ход" [ref=e172]:
+        - generic [ref=e173]: След. действие
+        - generic [ref=e174]: "6"
+  - region "Консоль боя" [ref=e179]:
+    - generic [ref=e180]:
+      - generic [ref=e181]:
+        - generic [ref=e182]: DIVR
+        - generic [ref=e185]:
+          - generic [ref=e186]:
+            - generic [ref=e187]: Корпус
+            - strong [ref=e188]:
+              - text: "70"
+              - generic [ref=e189]: /70
+          - generic [ref=e192]:
+            - generic [ref=e193]: Щит
+            - strong [ref=e194]: "0"
+          - generic [ref=e197]:
+            - generic [ref=e198]: Заряд
+            - strong [ref=e199]:
+              - text: "3"
+              - generic [ref=e200]: /3
+      - generic [ref=e203]:
+        - generic [ref=e204]: Журнал
+        - generic [ref=e205]: Канал чист // ожидание действия
+    - generic [ref=e207]:
+      - generic [ref=e208]:
+        - generic [ref=e209]: Контур управления
+        - text: Протоколы · 5
+      - generic [ref=e210]:
+        - generic "В колоде 12, в сбросе 0" [ref=e211]:
+          - generic [ref=e212]:
+            - generic [ref=e215]: Колода
+            - strong [ref=e216]: "12"
+          - generic [ref=e217]:
+            - generic [ref=e220]: Сброс
+            - strong [ref=e221]: "0"
+        - generic [ref=e222]: Готов к вводу
+        - group [ref=e223]:
+          - generic "Иконки эффектов" [ref=e224] [cursor=pointer]
+    - generic [ref=e225]:
+      - 'button "01 1 Экстренный щит Эффекты: Получить 9 Щита." [ref=e226] [cursor=pointer]':
+        - generic [ref=e227]:
+          - generic [ref=e228]: "01"
+          - generic [ref=e230]: "1"
+        - generic [ref=e231]: Экстренный щит
+        - 'generic "Эффекты: Получить 9 Щита." [ref=e232]':
+          - generic "Щит" [ref=e233]:
+            - strong [ref=e236]: "+9"
+      - 'button "02 1 Форсаж оружия Эффекты: Получить 2 Форсажа на весь бой." [ref=e237] [cursor=pointer]':
+        - generic [ref=e238]:
+          - generic [ref=e239]: "02"
+          - generic [ref=e241]: "1"
+        - generic [ref=e242]: Форсаж оружия
+        - 'generic "Эффекты: Получить 2 Форсажа на весь бой." [ref=e243]':
+          - generic "Форсаж" [ref=e244]:
+            - strong [ref=e248]: "+2"
+            - generic [ref=e249]: СЕБЕ
+      - 'button "03 1 Барьер Эффекты: Получить 5 Щита." [ref=e250] [cursor=pointer]':
+        - generic [ref=e251]:
+          - generic [ref=e252]: "03"
+          - generic [ref=e254]: "1"
+        - generic [ref=e255]: Барьер
+        - 'generic "Эффекты: Получить 5 Щита." [ref=e256]':
+          - generic "Щит" [ref=e257]:
+            - strong [ref=e260]: "+5"
+      - 'button "04 1 Залп Эффекты: Нанести 6 урона." [ref=e261] [cursor=pointer]':
+        - generic [ref=e262]:
+          - generic [ref=e263]: "04"
+          - generic [ref=e265]: "1"
+        - generic [ref=e266]: Залп
+        - 'generic "Эффекты: Нанести 6 урона." [ref=e267]':
+          - generic "Урон" [ref=e268]:
+            - strong [ref=e271]: "6"
+      - 'button "05 1 Контрудар Эффекты: Нанести урон, равный текущему Щиту." [ref=e272] [cursor=pointer]':
+        - generic [ref=e273]:
+          - generic [ref=e274]: "05"
+          - generic [ref=e276]: "1"
+        - generic [ref=e277]: Контрудар
+        - 'generic "Эффекты: Нанести урон, равный текущему Щиту." [ref=e278]':
+          - generic "Урон" [ref=e279]:
+            - strong [ref=e282]: ЩИТ
+    - button "Завершить ход" [ref=e283] [cursor=pointer]:
+      - generic [ref=e284]: Завершить
+      - text: ход
+  - button "Меню" [ref=e285] [cursor=pointer]: ☰

@@ -1,10 +1,9 @@
 @font-face {
   font-family: "PixelDisplay";
   src:
-    url("./assets/fonts/press-start-2p-cyrillic-ext-400-normal.woff2") format("woff2"),
-    url("./assets/fonts/press-start-2p-cyrillic-400-normal.woff2") format("woff2"),
-    url("./assets/fonts/press-start-2p-latin-ext-400-normal.woff2") format("woff2"),
-    url("./assets/fonts/press-start-2p-latin-400-normal.woff2") format("woff2");
+    url("./assets/fonts/dotgothic16-cyrillic-400-normal.woff2") format("woff2"),
+    url("./assets/fonts/dotgothic16-latin-ext-400-normal.woff2") format("woff2"),
+    url("./assets/fonts/dotgothic16-latin-400-normal.woff2") format("woff2");
   font-style: normal;
   font-weight: 400;
   font-display: swap;

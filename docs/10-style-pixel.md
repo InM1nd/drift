@@ -14,6 +14,8 @@
 
 ### Build target и reference lock
 
+Краткий reference lock для передачи художнику, дизайнеру или другому агенту: **[Abyssal Cathedral — visual style reference](abyssal-cathedral-style-reference.md)**.
+
 - **Ветка:** `feat/pixel-visual-overhaul` от `main`.
 - **Новая концепт-тройка (канонический боевой кадр 16:9):**
   - «Abyssal Cathedral» — биомеханический подводный собор.
@@ -60,16 +62,24 @@ Reference lock:
 
 - Базовая сетка: 4px.
 - Контуры: 1px (внутренние) и 3px (`--outline-w`) для panel boundaries.
-- Боевой кадр 640×360 с **центральной portrait-safe зоной** ~320×260 для 375×812 crop.
+- Боевой кадр 640×360 выводится целиком через `object-fit: contain`; на узких экранах свободное поле остаётся базовым navy canvas, а не обрезает края сцены.
 - Масштаб спрайтов только целочисленный/полуцелочисленный (`1.5x`, `2x`, `3x`) с `image-rendering: pixelated`.
 
 #### Локальные шрифты (OFL, self-hosted)
 
 - Добавлены локально в `src/assets/fonts/`:
-  - `press-start-2p-*-400-normal.woff2` (display/числа/заголовки)
+  - `dotgothic16-*-400-normal.woff2` (display/числа/заголовки — тонкий dot-matrix/LCD-пиксель, читается как реликтовый цифровой дисплей, а не аркадный шрифт)
   - `ibm-plex-mono-*-400-normal.woff2` (основной монотекст с кириллицей)
-- Источник: пакеты `@fontsource/press-start-2p` и `@fontsource/ibm-plex-mono`.
-- Подключение: `@font-face` в `src/index.css`, без CDN (PWA/offline-safe).
+- Источник: пакеты `@fontsource/dotgothic16` и `@fontsource/ibm-plex-mono`.
+- Подключение: `@font-face` в `src/index.css` под именем `PixelDisplay` / `PlexMonoLocal`, без CDN (PWA/offline-safe).
+- **История:** изначально был выбран `Press Start 2P` (аркадный 8-bit) — заменён на `DotGothic16` после визуального сравнения (см. reference lock выше), потому что тонкий dot-matrix ближе к «древней священной машине», чем coin-op эстетика.
+
+#### Логотип титульного экрана
+
+- Pixel-вариант использует отдельный `src/assets/brand/drift-logo-pixel.png`: прозрачный реликварный crest в языке Abyssal Cathedral с fossil-gold механикой, cyan-витражами и редкими magenta следами инфекции.
+- Точный wordmark `dRift` остаётся DOM-текстом на локальном `PixelDisplay` поверх центрального слота ассета; bone-ivory буквы получают жёсткую 3px-обводку `--outline` без blur.
+- Ассет выводится через `image-rendering: pixelated`; HUD-растр остаётся отдельным и не меняется.
+- На ширине 320–390px crest масштабируется до ширины контейнера, не обрезается и не создаёт горизонтальный скролл.
 
 #### Asset manifest (Pixel backdrops)
 
