@@ -35,7 +35,12 @@ export function peekNextMove(enemy: EnemyCombatantState): EnemyAction {
 }
 
 export function runEnemyTurn(state: CombatState): void {
-  for (const enemy of state.enemies) {
+  // Снимок состава на начало хода: "summon" (Ядро-Страж) добавляет запись в
+  // state.enemies посреди этого же прохода — без снимка for...of подхватил бы
+  // её на том же индексе и подкрепление успело бы отыграть свой первый ход
+  // мгновенно, а не с началом следующего хода врагов, как для любого другого
+  // вражеского юнита.
+  for (const enemy of [...state.enemies]) {
     if (enemy.hp <= 0) continue;
     const move = peekNextMove(enemy);
     resolveEnemyAction(move, enemy, state);

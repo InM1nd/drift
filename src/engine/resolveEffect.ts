@@ -1,8 +1,9 @@
 import type { Amount, CardData, Effect, Status, Trigger } from "../types";
 import type { EnemyAction } from "../types";
 import { getCardById } from "../data/cards";
+import { getEnemyById } from "../data/enemies";
 import type { CombatantState, CombatState, EnemyCombatantState } from "./combatState";
-import { checkOutcome, drawCards, pushLog } from "./combatState";
+import { checkOutcome, drawCards, enemyFromData, pushLog } from "./combatState";
 import { nextInt } from "./rng";
 
 // docs/02-combat.md: Форсаж/Стабилизация — «на оставшийся бой» (не тикают, живут
@@ -130,9 +131,21 @@ export function resolveEnemyAction(action: EnemyAction, enemy: EnemyCombatantSta
       );
       break;
     }
-    case "summon":
-      pushLog(state, `${enemy.name}: вызов подкрепления (не реализовано в Фазе 1).`);
+    case "summon": {
+      // "Разовая подмога" (docs/04-enemies.md) — не завязано на позицию в
+      // цикле (moveIndex продолжает идти через смену фазы, см. enemyAi.ts),
+      // а на явный флаг: если уже призывал в этом бою, повторный заход в
+      // этот слот цикла — no-op, а не вторая порция подкреплений.
+      if (enemy.summonedOnce) {
+        pushLog(state, `${enemy.name}: подкрепление уже вызвано в этом бою.`);
+        break;
+      }
+      enemy.summonedOnce = true;
+      const spawned = enemyFromData(getEnemyById(action.enemyId), state.rng);
+      state.enemies.push(spawned);
+      pushLog(state, `${enemy.name}: вызывает подкрепление — ${spawned.name} (HP ${spawned.hp}).`);
       break;
+    }
     case "damageWithStatus": {
       const dealt = applyDamage(enemy, state.player, action.amount);
       addStatus(state.player, action.status, action.stacks);

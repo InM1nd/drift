@@ -94,6 +94,24 @@ describe("resolveEnemyAction — ходы Стража-гексапода (docs/
   });
 });
 
+describe("summon — разовое подкрепление Ядра-Стража (docs/04-enemies.md)", () => {
+  it("призывает нового врага в state.enemies", () => {
+    const state = createInitialCombatState(70, ["strike"], ["core-guardian"], 1);
+    expect(state.enemies).toHaveLength(1);
+    resolveEnemyAction({ kind: "summon", enemyId: "sanitation-drone" }, state.enemies[0], state);
+    expect(state.enemies).toHaveLength(2);
+    expect(state.enemies[1].enemyId).toBe("sanitation-drone");
+    expect(state.enemies[1].hp).toBeGreaterThan(0);
+  });
+
+  it("повторный призыв — no-op, если уже призывал в этом бою («разовая подмога»)", () => {
+    const state = createInitialCombatState(70, ["strike"], ["core-guardian"], 1);
+    resolveEnemyAction({ kind: "summon", enemyId: "sanitation-drone" }, state.enemies[0], state);
+    resolveEnemyAction({ kind: "summon", enemyId: "sanitation-drone" }, state.enemies[0], state);
+    expect(state.enemies).toHaveLength(2);
+  });
+});
+
 describe("applyStatus (одиночная цель) — onlyIfPresent (Токсичный клинок)", () => {
   const toxicBlade = {
     id: "toxic-blade",

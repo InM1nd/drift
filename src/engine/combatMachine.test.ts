@@ -170,6 +170,19 @@ describe("combatMachine", () => {
     expect(after.selectedInjectorIndex).toBeNull();
   });
 
+  it("Ядро-Страж: призыв подкрепления во 2-й фазе не даёт ему походить в тот же проход runEnemyTurn", () => {
+    const combat = createInitialCombatState(70, STARTER_DECK_IDS, ["core-guardian"], 1);
+    combat.enemies[0].hp = 70; // ниже 50% от maxHp (140–160) — фаза 2, первый ход после порога это summon
+    const actor = createActor(combatMachine, { input: { combat } });
+    actor.start();
+    actor.send({ type: "END_TURN" });
+
+    const state = actor.getSnapshot().context.combat;
+    expect(state.enemies).toHaveLength(2);
+    expect(state.enemies[1].enemyId).toBe("sanitation-drone");
+    expect(state.enemies[1].moveIndex).toBe(0); // ещё не действовал в проходе, где был призван
+  });
+
   it("Перегрузка щитов: card.retain переживает щит через начало следующего хода", () => {
     const combat = createInitialCombatState(70, ["shield-overload"], ["hull-turret"], 1);
     const actor = createActor(combatMachine, { input: { combat } });

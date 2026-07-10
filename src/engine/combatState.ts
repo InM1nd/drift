@@ -25,6 +25,8 @@ export interface EnemyCombatantState extends CombatantState {
   enemyId: string;
   name: string;
   moveIndex: number;
+  /** Разовая заявка "уже призывал подкрепление в этом бою" (Ядро-Страж, docs/04-enemies.md) — не завязана на moveIndex/цикл. */
+  summonedOnce?: boolean;
 }
 
 export interface CombatState {
@@ -55,7 +57,8 @@ export interface CombatState {
 const PLAYER_MAX_ENERGY = 3;
 const HAND_SIZE = 5;
 
-function enemyFromData(data: EnemyData, rng: RngState): EnemyCombatantState {
+/** Экспортируется для resolveEffect.ts — тот же способ породить вражеский экземпляр нужен для "summon" (подкрепление Ядра-Стража). */
+export function enemyFromData(data: EnemyData, rng: RngState): EnemyCombatantState {
   const [min, max] = data.hpRange;
   const hp = min + nextInt(rng, max - min + 1);
   return {

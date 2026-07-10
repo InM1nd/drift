@@ -40,14 +40,7 @@ export const ENEMIES: EnemyData[] = [
   },
 ];
 
-/**
- * Элита и босс Акта 1 (Milestone A — минимальный каркас Фазы 2). Упрощения
- * относительно docs/04-enemies.md, осознанно оставленные вне этого среза:
- * Страж-гексапод не даёт Модуль (Модули — Milestone B), Ядро-Страж не
- * призывает подкрепление во второй фазе (summon пока лог-заглушка в
- * resolveEffect.ts) — вместо этого фаза 2 накладывает Коррозию и на себя,
- * и на игрока напрямую.
- */
+/** Элита и босс Акта 1. Страж-гексапод даёт Модуль через runStore (см. resolveCombat), не отсюда. */
 export const ELITE_ENEMIES: EnemyData[] = [
   {
     id: "guardian-hexapod",
@@ -74,12 +67,15 @@ export const BOSS_ENEMIES: EnemyData[] = [
       { kind: "damage", amount: 12 },
       { kind: "applyStatus", status: "corrosion", stacks: 3, target: "self" },
       { kind: "applyStatus", status: "corrosion", stacks: 3, target: "player" },
+      // "Разовая подмога" (docs/04-enemies.md) — резолвер (resolveEffect.ts)
+      // сам гасит повторные заходы в этот индекс цикла после первого призыва.
+      { kind: "summon", enemyId: "sanitation-drone" },
     ],
     pattern: {
       kind: "phase",
       hpThreshold: 50,
       before: { kind: "cycle", sequence: [0, 1, 2] },
-      after: { kind: "cycle", sequence: [3, 4, 5] },
+      after: { kind: "cycle", sequence: [6, 3, 4, 5] },
     },
   },
 ];
