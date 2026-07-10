@@ -1,5 +1,8 @@
 import { useRunStore } from "../state/runStore";
 import { getCardById, getUpgradedCardId } from "../data/cards";
+import { HudRoomBackdrop } from "./HudRoomBackdrop";
+import { HullIcon } from "./icons";
+import { ProtocolIcon } from "./ProtocolIcon";
 import { ScreenHeader } from "./ScreenHeader";
 import "./ScreenLayout.css";
 
@@ -35,10 +38,11 @@ export function RestScreen() {
 
   return (
     <div className="screen-layout rest-screen">
+      <HudRoomBackdrop kind="rest" />
       <ScreenHeader
         code="SERVICE // MAINTENANCE"
         title="Ремонтный отсек"
-        aside={<div className="screen-health"><small>Корпус</small>{playerHp}/{playerMaxHp}</div>}
+        aside={<div className="screen-health"><small><HullIcon /> Корпус</small>{playerHp}/{playerMaxHp}</div>}
       />
       <p className="screen-hint">Выбери одно: восстановить HP или улучшить один Протокол.</p>
 
@@ -71,6 +75,7 @@ export function RestScreen() {
               className="reward-card"
               onClick={() => handleUpgrade(cardId, index)}
             >
+              <ProtocolIcon type={base.type} />
               <div className="card-name">
                 {base.name} → {upgraded.name}
               </div>

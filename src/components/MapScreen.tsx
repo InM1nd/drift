@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useRunStore } from "../state/runStore";
 import { getMapNodeById } from "../data/mapNodes";
+import { HudRoomBackdrop } from "./HudRoomBackdrop";
+import { CreditsIcon, HullIcon, ThreatIcon } from "./icons";
 import { NODE_ICONS } from "./mapIcons";
 import { ScreenHeader } from "./ScreenHeader";
 import "./ScreenLayout.css";
@@ -45,14 +47,15 @@ export function MapScreen() {
 
   return (
     <div className="screen-layout map-screen">
+      <HudRoomBackdrop kind="map" seed={currentNode.id} />
       <ScreenHeader
         code="NAV // ROUTE SCAN"
         title="ДРЕЙФ · Остов «Хорда»"
         aside={(
           <div className="screen-resources">
-            <span><small>Корпус</small>{playerHp}/{playerMaxHp}</span>
-            <span className="credits-bar"><small>Кредиты</small>₡ {credits}</span>
-            <span><small>Угроза</small>T{threatLevel}</span>
+            <span><small><HullIcon /> Корпус</small>{playerHp}/{playerMaxHp}</span>
+            <span className="credits-bar"><small><CreditsIcon /> Кредиты</small>₡ {credits}</span>
+            <span><small><ThreatIcon /> Угроза</small>T{threatLevel}</span>
           </div>
         )}
       />

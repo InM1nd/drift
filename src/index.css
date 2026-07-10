@@ -107,6 +107,74 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
+.game-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  vertical-align: -0.14em;
+}
+
+.protocol-type,
+.offer-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.protocol-type-icon,
+.offer-type > .game-icon {
+  width: 0.82rem;
+  height: 0.82rem;
+}
+
+.protocol-type.compact > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.protocol-type.compact .protocol-type-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.protocol-type-attack {
+  color: color-mix(in srgb, var(--danger) 82%, var(--ink));
+}
+
+.protocol-type-skill {
+  color: var(--accent);
+}
+
+.protocol-type-power {
+  color: var(--energy);
+}
+
+.screen-resources small,
+.screen-health small,
+.credits-bar small,
+.vital-label {
+  align-items: center;
+  gap: 0.22rem;
+}
+
+.screen-resources small,
+.screen-health small,
+.credits-bar small {
+  display: inline-flex;
+}
+
 .visual-style-switch {
   display: inline-flex;
   position: fixed;
@@ -154,6 +222,15 @@ button:focus-visible {
 :root[data-visual-style="pixel"] .visual-style-switch button.active {
   color: var(--panel);
   text-shadow: none;
+}
+
+:root[data-visual-style="pixel"] .protocol-type,
+:root[data-visual-style="pixel"] .offer-type,
+:root[data-visual-style="pixel"] .screen-resources small .game-icon,
+:root[data-visual-style="pixel"] .screen-health small .game-icon,
+:root[data-visual-style="pixel"] .credits-bar small .game-icon,
+:root[data-visual-style="pixel"] .vital-label .game-icon {
+  display: none;
 }
 
 @media (max-width: 40rem) {

@@ -3,6 +3,8 @@ import { useRunStore } from "../state/runStore";
 import { getCardById } from "../data/cards";
 import { getModuleById } from "../data/modules";
 import { getInjectorById } from "../data/injectors";
+import { HudRoomBackdrop } from "./HudRoomBackdrop";
+import { ProtocolIcon } from "./ProtocolIcon";
 import { ScreenHeader } from "./ScreenHeader";
 import "./ScreenLayout.css";
 
@@ -16,6 +18,7 @@ export function RewardScreen() {
 
   return (
     <div className="screen-layout reward-screen">
+      <HudRoomBackdrop kind="reward" />
       <ScreenHeader code="RECOVERY // LOOT" title="Награда" />
       <div className="reward-notices">
         <p className="screen-hint">Боевой дебриф: +₡ {lastCombatRewardCredits} за зачистку сектора.</p>
@@ -45,7 +48,10 @@ export function RewardScreen() {
               className={`reward-card ${selectedCardId === cardId ? "selected" : ""}`}
               onClick={() => setSelectedCardId(cardId)}
             >
-              <div className="card-cost"><small>ЗРД</small>{card.cost}</div>
+              <div className="card-offer-meta">
+                <ProtocolIcon type={card.type} />
+                <div className="card-cost"><small>ЗРД</small>{card.cost}</div>
+              </div>
               <div className="card-name">{card.name}</div>
               <div className="card-desc">{card.description}</div>
             </button>
