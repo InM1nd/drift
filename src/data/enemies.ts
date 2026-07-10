@@ -87,3 +87,8 @@ export function getEnemyById(id: string): EnemyData {
   if (!enemy) throw new Error(`Unknown enemy id: ${id}`);
   return enemy;
 }
+
+/** Уровень угрозы (docs/11-threat-level.md): элита/босс масштабируются отдельно от рядовых. */
+export function isEliteOrBoss(id: string): boolean {
+  return ELITE_ENEMIES.some((e) => e.id === id) || BOSS_ENEMIES.some((e) => e.id === id);
+}

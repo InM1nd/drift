@@ -111,7 +111,7 @@ function reflectIfActive(state: CombatState, attacker: EnemyCombatantState): voi
 export function resolveEnemyAction(action: EnemyAction, enemy: EnemyCombatantState, state: CombatState): void {
   switch (action.kind) {
     case "damage": {
-      const dealt = applyDamage(enemy, state.player, action.amount);
+      const dealt = applyDamage(enemy, state.player, Math.ceil(action.amount * state.threatDamageMult));
       pushLog(state, `${enemy.name}: ${dealt} урона по Ныряльщику (HP ${state.player.hp}/${state.player.maxHp}).`);
       checkOutcome(state);
       reflectIfActive(state, enemy);
@@ -147,7 +147,7 @@ export function resolveEnemyAction(action: EnemyAction, enemy: EnemyCombatantSta
       break;
     }
     case "damageWithStatus": {
-      const dealt = applyDamage(enemy, state.player, action.amount);
+      const dealt = applyDamage(enemy, state.player, Math.ceil(action.amount * state.threatDamageMult));
       addStatus(state.player, action.status, action.stacks);
       pushLog(
         state,
@@ -159,7 +159,7 @@ export function resolveEnemyAction(action: EnemyAction, enemy: EnemyCombatantSta
     }
     case "damagePerCardPlayed": {
       const base = action.perCard * state.cardsPlayedThisTurn;
-      const dealt = applyDamage(enemy, state.player, base);
+      const dealt = applyDamage(enemy, state.player, Math.ceil(base * state.threatDamageMult));
       pushLog(
         state,
         `${enemy.name}: ${dealt} урона по Ныряльщику за ${state.cardsPlayedThisTurn} карт(ы), сыгранных в прошлый ход (HP ${state.player.hp}/${state.player.maxHp}).`,

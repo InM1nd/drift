@@ -5,10 +5,12 @@ import { createRng, nextInt, shuffle, type RngState } from "../engine/rng";
 import type { CombatState } from "../engine/combatState";
 import { generateMap } from "../engine/mapGenerator";
 import { rollInjectorDrop } from "../engine/lootRolls";
+import { getThreatModifiers } from "../engine/threatLevel";
 import { getMapNodeById } from "../data/mapNodes";
 import { CARDS, STARTER_DECK_IDS } from "../data/cards";
 import { MODULES } from "../data/modules";
 import { INJECTORS } from "../data/injectors";
+import { useMetaStore } from "./metaStore";
 import type { MapNodeData, RunScreen, ShopOffer } from "../types";
 
 const MODULE_COMBAT_RECORDER = "combat-recorder";
@@ -66,10 +68,12 @@ interface RunState {
   injectorIds: string[];
   /** Только что полученный Инъектор — для отображения на RewardScreen, сбрасывается claimReward. */
   pendingInjectorId: string | null;
+  /** Уровень угрозы (docs/11-threat-level.md), 0 = без модификатора. Выбирается при старте, не меняется в течение забега. */
+  threatLevel: number;
 }
 
 interface RunActions {
-  startNewRun: () => void;
+  startNewRun: (threatLevel?: number) => void;
   enterNode: () => void;
   resolveCombat: (outcome: "victory" | "defeat", finalPlayerHp: number, finalOverdrive: number) => void;
   claimReward: (cardId: string | null) => void;
@@ -91,17 +95,18 @@ interface RunActions {
 
 type RunStore = RunState & RunActions;
 
-function createInitialRunState(seed: number): RunState {
+function createInitialRunState(seed: number, threatLevel = 0): RunState {
   const rng = createRng(seed);
   // Генерация карты — часть детерминированного потока сида: расходует
   // курсор rng здесь же, до того как он пойдёт на что-либо ещё, поэтому
   // весь остальной забег (магазин, награды, сигналы) переигрывается 1-в-1.
   const { nodes, displayLayers } = generateMap(rng);
+  const threatMods = getThreatModifiers(threatLevel);
   return {
     screen: "map",
     seed,
     rng,
-    credits: STARTING_CREDITS,
+    credits: STARTING_CREDITS + threatMods.startingCreditsDelta,
     deck: [...STARTER_DECK_IDS],
     player: { hp: STARTING_HP, maxHp: STARTING_HP },
     mapNodes: nodes,
@@ -119,6 +124,7 @@ function createInitialRunState(seed: number): RunState {
     carriedOverdrive: 0,
     injectorIds: [],
     pendingInjectorId: null,
+    threatLevel,
   };
 }
 
@@ -137,7 +143,7 @@ export const useRunStore = create<RunStore>()(
     (set, get) => ({
       ...createInitialRunState(Date.now()),
 
-      startNewRun: () => set(createInitialRunState(Date.now())),
+      startNewRun: (threatLevel = 0) => set(createInitialRunState(Date.now(), threatLevel)),
 
       enterNode: () => {
         const state = get();
@@ -197,6 +203,9 @@ export const useRunStore = create<RunStore>()(
         // Боевой рекордер (Модуль): Форсаж переносится в следующий бой этого захода.
         const carriedOverdrive = state.ownedModuleIds.includes(MODULE_COMBAT_RECORDER) ? finalOverdrive : 0;
         if (node.type === "boss") {
+          // Разблокировка Уровня угрозы (docs/11-threat-level.md): любая победа над
+          // боссом, в т.ч. на Уровне 0, открывает все уровни 1–5 сразу — не лестницу.
+          useMetaStore.getState().unlockThreatLevels();
           set({
             screen: "runEnd",
             runOutcome: "victory",
@@ -219,8 +228,14 @@ export const useRunStore = create<RunStore>()(
             ? unownedModules[nextInt(rng, unownedModules.length)]
             : null;
         // Инъекторы "дропаются с боёв" (docs/05-items.md) — шанс, не гарантия
-        // (см. lootRolls.ts), и только пока есть свободный слот.
-        const grantedInjectorId = rollInjectorDrop(rng, state.injectorIds.length, MAX_INJECTORS);
+        // (см. lootRolls.ts), и только пока есть свободный слот; шанс параметризован
+        // Уровнем угрозы (docs/11-threat-level.md).
+        const grantedInjectorId = rollInjectorDrop(
+          rng,
+          state.injectorIds.length,
+          MAX_INJECTORS,
+          getThreatModifiers(state.threatLevel).injectorDropChancePct,
+        );
         set({
           screen: "reward",
           player: nextPlayer,

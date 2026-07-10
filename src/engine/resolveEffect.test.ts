@@ -94,6 +94,41 @@ describe("resolveEnemyAction — ходы Стража-гексапода (docs/
   });
 });
 
+describe("Уровень угрозы — threatDamageMult масштабирует урон врагов по игроку (docs/11-threat-level.md)", () => {
+  it("damage: округляется вверх", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1, { threatDamageMult: 1.15 });
+    resolveEnemyAction({ kind: "damage", amount: 5 }, state.enemies[0], state);
+    expect(state.player.hp).toBe(70 - Math.ceil(5 * 1.15)); // 70 - 6 = 64
+  });
+
+  it("damageWithStatus: тоже масштабируется", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1, { threatDamageMult: 1.15 });
+    resolveEnemyAction({ kind: "damageWithStatus", amount: 8, status: "breach", stacks: 1 }, state.enemies[0], state);
+    expect(state.player.hp).toBe(70 - Math.ceil(8 * 1.15)); // 70 - 10 = 60
+  });
+
+  it("damagePerCardPlayed: множитель применяется к итоговой базе (perCard × сыгранные карты)", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1, { threatDamageMult: 1.15 });
+    state.cardsPlayedThisTurn = 3;
+    resolveEnemyAction({ kind: "damagePerCardPlayed", perCard: 4 }, state.enemies[0], state);
+    expect(state.player.hp).toBe(70 - Math.ceil(4 * 3 * 1.15)); // 70 - 14 = 56
+  });
+
+  it("без модификатора (по умолчанию) поведение не меняется", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1);
+    resolveEnemyAction({ kind: "damage", amount: 5 }, state.enemies[0], state);
+    expect(state.player.hp).toBe(65);
+  });
+
+  it("Отражение не масштабируется threatDamageMult — контрудар считается от stacks игрока, не от урона врага", () => {
+    const state = createInitialCombatState(70, ["strike"], ["hull-turret"], 1, { threatDamageMult: 1.15 });
+    state.player.statuses.reflect = 3;
+    resolveEnemyAction({ kind: "damage", amount: 5 }, state.enemies[0], state);
+    expect(state.player.hp).toBe(70 - Math.ceil(5 * 1.15)); // получил усиленный урон
+    expect(state.enemies[0].hp).toBe(state.enemies[0].maxHp - 3); // но отразил ровно 3, не 3×1.15
+  });
+});
+
 describe("summon — разовое подкрепление Ядра-Стража (docs/04-enemies.md)", () => {
   it("призывает нового врага в state.enemies", () => {
     const state = createInitialCombatState(70, ["strike"], ["core-guardian"], 1);

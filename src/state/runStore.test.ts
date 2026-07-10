@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MAX_INJECTORS, useRunStore } from "./runStore";
+import { useMetaStore } from "./metaStore";
 import { MODULES } from "../data/modules";
 import { INJECTORS } from "../data/injectors";
 import { createInitialCombatState } from "../engine/combatState";
@@ -165,5 +166,49 @@ describe("runStore — Терминал снабжения продаёт Мод
     });
     useRunStore.getState().enterNode();
     expect(useRunStore.getState().shopOffers.some((o) => o.kind === "injector")).toBe(false);
+  });
+});
+
+describe("runStore — Уровень угрозы (docs/11-threat-level.md)", () => {
+  it("startNewRun(threatLevel) сохраняет уровень и применяет дельту стартовых кредитов", () => {
+    useRunStore.getState().startNewRun(4);
+    expect(useRunStore.getState().threatLevel).toBe(4);
+    expect(useRunStore.getState().credits).toBe(79); // 99 - 20
+  });
+
+  it("startNewRun() без аргумента — Уровень 0, кредиты и HP врагов не меняются", () => {
+    useRunStore.getState().startNewRun();
+    expect(useRunStore.getState().threatLevel).toBe(0);
+    expect(useRunStore.getState().credits).toBe(99);
+  });
+
+  it("на высоком Уровне угрозы дроп Инъектора реже, чем на Уровне 0 (по сумме за много сидов)", () => {
+    function countDrops(threatLevel: number): number {
+      let drops = 0;
+      for (let seed = 0; seed < 150; seed++) {
+        useRunStore.getState().startNewRun(threatLevel);
+        useRunStore.setState({ currentNodeId: nodeIdOfType("compartment"), rng: createRng(seed) });
+        useRunStore.getState().resolveCombat("victory", 70, 0);
+        if (useRunStore.getState().injectorIds.length === 1) drops++;
+      }
+      return drops;
+    }
+    expect(countDrops(5)).toBeLessThan(countDrops(0));
+  });
+
+  it("победа над боссом разблокирует Уровни угрозы в metaStore, даже если сам забег шёл на Уровне 0", () => {
+    useMetaStore.setState({ threatLevelsUnlocked: false });
+    useRunStore.getState().startNewRun(0);
+    useRunStore.setState({ currentNodeId: nodeIdOfType("boss") });
+    useRunStore.getState().resolveCombat("victory", 70, 0);
+    expect(useMetaStore.getState().threatLevelsUnlocked).toBe(true);
+  });
+
+  it("поражение не разблокирует Уровни угрозы", () => {
+    useMetaStore.setState({ threatLevelsUnlocked: false });
+    useRunStore.getState().startNewRun(0);
+    useRunStore.setState({ currentNodeId: nodeIdOfType("boss") });
+    useRunStore.getState().resolveCombat("defeat", 0, 0);
+    expect(useMetaStore.getState().threatLevelsUnlocked).toBe(false);
   });
 });

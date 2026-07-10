@@ -19,7 +19,7 @@ export function RunEndScreen() {
       <div className="run-end-stats">
         Узлов пройдено: {resolvedNodeIds.length} · Протоколов в колоде: {deck.length} · Кредиты: ₡ {credits}
       </div>
-      <button type="button" className="primary-button" onClick={startNewRun}>
+      <button type="button" className="primary-button" onClick={() => startNewRun()}>
         Новый забег
       </button>
     </div>

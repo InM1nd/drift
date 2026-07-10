@@ -1,6 +1,6 @@
 import type { Status } from "../types";
 import type { EnemyData } from "../types";
-import { getEnemyById } from "../data/enemies";
+import { getEnemyById, isEliteOrBoss } from "../data/enemies";
 import { createRng, nextInt, shuffle, type RngState } from "./rng";
 
 export type StatusStacks = Partial<Record<Status, number>>;
@@ -39,6 +39,8 @@ export interface CombatState {
   modules: string[];
   /** id Инъекторов в инвентаре забега (docs/05-items.md) — расходуются по одному, splice при использовании. */
   injectors: string[];
+  /** Уровень угрозы (docs/11-threat-level.md): множитель урона всех вражеских атак по игроку. */
+  threatDamageMult: number;
   player: PlayerState;
   enemies: EnemyCombatantState[];
   hand: string[];
@@ -57,10 +59,14 @@ export interface CombatState {
 const PLAYER_MAX_ENERGY = 3;
 const HAND_SIZE = 5;
 
-/** Экспортируется для resolveEffect.ts — тот же способ породить вражеский экземпляр нужен для "summon" (подкрепление Ядра-Стража). */
-export function enemyFromData(data: EnemyData, rng: RngState): EnemyCombatantState {
+/**
+ * Экспортируется для resolveEffect.ts — тот же способ породить вражеский экземпляр нужен для "summon" (подкрепление Ядра-Стража).
+ * hpMult — Уровень угрозы (docs/11-threat-level.md); округление вверх — единственный
+ * случай в игре, где округление намеренно в пользу сложности, а не игрока.
+ */
+export function enemyFromData(data: EnemyData, rng: RngState, hpMult = 1): EnemyCombatantState {
   const [min, max] = data.hpRange;
-  const hp = min + nextInt(rng, max - min + 1);
+  const hp = Math.ceil((min + nextInt(rng, max - min + 1)) * hpMult);
   return {
     enemyId: data.id,
     name: data.name,
@@ -82,6 +88,10 @@ export interface CreateCombatOptions {
   carriedOverdrive?: number;
   /** id Инъекторов в инвентаре забега — см. CombatState.injectors. */
   injectorIds?: string[];
+  /** Уровень угрозы (docs/11-threat-level.md) — все по умолчанию 1 (нейтрально, без модификатора). */
+  enemyHpMult?: number;
+  eliteBossHpMult?: number;
+  threatDamageMult?: number;
 }
 
 export function createInitialCombatState(
@@ -92,9 +102,19 @@ export function createInitialCombatState(
   options: CreateCombatOptions = {},
 ): CombatState {
   const rng = createRng(seed);
-  const enemies = enemyIds.map((id) => enemyFromData(getEnemyById(id), rng));
+  const {
+    playerMaxHp = playerHp,
+    modules = [],
+    carriedOverdrive = 0,
+    injectorIds = [],
+    enemyHpMult = 1,
+    eliteBossHpMult = 1,
+    threatDamageMult = 1,
+  } = options;
+  const enemies = enemyIds.map((id) =>
+    enemyFromData(getEnemyById(id), rng, isEliteOrBoss(id) ? eliteBossHpMult : enemyHpMult),
+  );
   const drawPile = shuffle(rng, deckCardIds);
-  const { playerMaxHp = playerHp, modules = [], carriedOverdrive = 0, injectorIds = [] } = options;
 
   const state: CombatState = {
     rng,
@@ -103,6 +123,7 @@ export function createInitialCombatState(
     lastCardCost: 0,
     modules,
     injectors: [...injectorIds],
+    threatDamageMult,
     player: {
       hp: playerHp,
       maxHp: playerMaxHp,
