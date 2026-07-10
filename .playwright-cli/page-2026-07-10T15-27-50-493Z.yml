@@ -1,0 +1,10 @@
+- generic [ref=e3]:
+  - heading "dRift" [level=1]:
+    - img "dRift"
+  - generic [ref=e5]:
+    - generic [ref=e6]: Уровень угрозы
+    - generic [ref=e7]: Разблокируется после победы над Ядром-Стражем.
+    - button "T0" [pressed] [ref=e9] [cursor=pointer]
+  - generic [ref=e10]:
+    - button "Новый забег" [ref=e11] [cursor=pointer]
+    - button "Настройки" [ref=e12] [cursor=pointer]

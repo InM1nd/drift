@@ -14,6 +14,8 @@
 
 ### Build target и reference lock
 
+Краткий reference lock для передачи художнику, дизайнеру или другому агенту: **[Abyssal Cathedral — visual style reference](abyssal-cathedral-style-reference.md)**.
+
 - **Ветка:** `feat/pixel-visual-overhaul` от `main`.
 - **Новая концепт-тройка (канонический боевой кадр 16:9):**
   - «Abyssal Cathedral» — биомеханический подводный собор.
@@ -66,10 +68,11 @@ Reference lock:
 #### Локальные шрифты (OFL, self-hosted)
 
 - Добавлены локально в `src/assets/fonts/`:
-  - `press-start-2p-*-400-normal.woff2` (display/числа/заголовки)
+  - `dotgothic16-*-400-normal.woff2` (display/числа/заголовки — тонкий dot-matrix/LCD-пиксель, читается как реликтовый цифровой дисплей, а не аркадный шрифт)
   - `ibm-plex-mono-*-400-normal.woff2` (основной монотекст с кириллицей)
-- Источник: пакеты `@fontsource/press-start-2p` и `@fontsource/ibm-plex-mono`.
-- Подключение: `@font-face` в `src/index.css`, без CDN (PWA/offline-safe).
+- Источник: пакеты `@fontsource/dotgothic16` и `@fontsource/ibm-plex-mono`.
+- Подключение: `@font-face` в `src/index.css` под именем `PixelDisplay` / `PlexMonoLocal`, без CDN (PWA/offline-safe).
+- **История:** изначально был выбран `Press Start 2P` (аркадный 8-bit) — заменён на `DotGothic16` после визуального сравнения (см. reference lock выше), потому что тонкий dot-matrix ближе к «древней священной машине», чем coin-op эстетика.
 
 #### Логотип титульного экрана
 

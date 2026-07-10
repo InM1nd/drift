@@ -1,0 +1,68 @@
+- generic [ref=e15]:
+  - banner [ref=e16]:
+    - generic [ref=e17]:
+      - generic [ref=e18]: NAV // ROUTE SCAN
+      - heading "dRift · Остов «Хорда»" [level=1] [ref=e19]
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e23]: Корпус
+        - text: 70/70
+      - generic [ref=e26]:
+        - generic [ref=e27]: Кредиты
+        - text: ₡ 99
+      - generic [ref=e31]:
+        - generic [ref=e32]: Угроза
+        - text: T0
+  - paragraph [ref=e35]:
+    - text: "Контур забега:"
+    - strong [ref=e36]: Протоколы 17
+    - text: ·
+    - strong [ref=e37]: Модули 0
+    - text: ·
+    - strong [ref=e38]: Инъекторы 0
+  - generic [ref=e39]:
+    - generic [ref=e40]:
+      - generic [ref=e41]: L01
+      - generic [ref=e42]: Отсек
+    - generic [ref=e49]:
+      - generic [ref=e50]: L02
+      - generic [ref=e51]: Отсек
+      - generic [ref=e58]: Отсек
+    - generic [ref=e65]:
+      - generic [ref=e66]: L03
+      - generic "Пока неизвестно" [ref=e67]: "?"
+      - generic "Пока неизвестно" [ref=e68]: "?"
+    - generic [ref=e69]:
+      - generic [ref=e70]: L04
+      - generic "Пока неизвестно" [ref=e71]: "?"
+      - generic "Пока неизвестно" [ref=e72]: "?"
+      - generic "Пока неизвестно" [ref=e73]: "?"
+    - generic [ref=e74]:
+      - generic [ref=e75]: L05
+      - generic "Пока неизвестно" [ref=e76]: "?"
+    - generic [ref=e77]:
+      - generic [ref=e78]: L06
+      - generic "Пока неизвестно" [ref=e79]: "?"
+  - generic [ref=e80]:
+    - generic [ref=e81]: Отсек
+    - generic [ref=e87]: Страж
+    - generic [ref=e93]: Терминал
+    - generic [ref=e99]: Ремонт
+    - generic [ref=e106]: Сигнал
+    - generic [ref=e112]: Ядро
+  - generic [ref=e120]:
+    - generic [ref=e121]: Текущая точка // Отсек
+    - 'button "Войти: Отсек →" [ref=e122] [cursor=pointer]'
+  - dialog [ref=e124]:
+    - generic [ref=e125]:
+      - generic [ref=e126]:
+        - heading "Настройки" [level=2] [ref=e147]
+        - button "Закрыть" [ref=e128] [cursor=pointer]: ×
+      - tablist [ref=e129]:
+        - tab "Меню" [ref=e130] [cursor=pointer]
+        - tab "Настройки" [selected] [ref=e131] [cursor=pointer]
+      - generic [ref=e149]:
+        - generic [ref=e150]: Визуальный стиль
+        - group "Визуальный стиль" [ref=e151]:
+          - button "HUD" [ref=e152] [cursor=pointer]
+          - button "PIXEL" [active] [pressed] [ref=e153] [cursor=pointer]
