@@ -56,6 +56,20 @@
   white-space: nowrap;
 }
 
+.brand-title {
+  width: min(100%, 26rem);
+}
+
+.brand-logo {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.brand-title span {
+  display: none;
+}
+
 .screen-header-aside {
   color: var(--ink);
   font-family: var(--mono);
@@ -717,6 +731,18 @@
 :root[data-visual-style="pixel"] .screen-header {
   border-bottom-width: var(--outline-w);
   border-bottom-color: var(--outline);
+}
+
+:root[data-visual-style="pixel"] .brand-title {
+  width: auto;
+}
+
+:root[data-visual-style="pixel"] .brand-logo {
+  display: none;
+}
+
+:root[data-visual-style="pixel"] .brand-title span {
+  display: inline;
 }
 
 :root[data-visual-style="pixel"] .screen-kicker {

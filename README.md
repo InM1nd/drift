@@ -1,4 +1,4 @@
-# DRIFT (working title)
+# dRift
 
 Pixel-art card roguelike deckbuilder. Web + PWA — macOS, Windows, and phone from a single codebase.
 

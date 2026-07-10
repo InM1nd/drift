@@ -12,6 +12,7 @@ import { RunEndScreen } from "./components/RunEndScreen";
 import { SystemNotice } from "./components/SystemNotice";
 import { playUiCue } from "./audio/uiCues";
 import { VisualStyleSwitch, type VisualStyle } from "./components/VisualStyleSwitch";
+import driftLogo from "./assets/brand/drift-logo.png";
 import "./components/ScreenLayout.css";
 
 type BootState = "checking" | "askContinue" | "ready";
@@ -88,7 +89,10 @@ function App() {
   } else if (bootState === "askContinue") {
     content = (
       <div className="screen-layout">
-        <h1>ДРЕЙФ</h1>
+        <h1 className="brand-title">
+          <img className="brand-logo" src={driftLogo} alt="dRift" />
+          <span>dRift</span>
+        </h1>
         <p className="screen-hint">Найден сохранённый забег.</p>
         {savedSummary ? (
           <p className="screen-hint">

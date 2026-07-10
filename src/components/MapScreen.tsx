@@ -50,7 +50,7 @@ export function MapScreen() {
       <HudRoomBackdrop kind="map" seed={currentNode.id} />
       <ScreenHeader
         code="NAV // ROUTE SCAN"
-        title="ДРЕЙФ · Остов «Хорда»"
+        title="dRift · Остов «Хорда»"
         aside={(
           <div className="screen-resources">
             <span><small><HullIcon /> Корпус</small>{playerHp}/{playerMaxHp}</span>
