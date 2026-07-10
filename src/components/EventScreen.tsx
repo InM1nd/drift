@@ -1,4 +1,5 @@
 import { useRunStore } from "../state/runStore";
+import { GameMenu } from "./GameMenu";
 import { RoomBackdrop } from "./RoomBackdrop";
 import { ScreenHeader } from "./ScreenHeader";
 import "./ScreenLayout.css";
@@ -49,6 +50,8 @@ export function EventScreen() {
           </div>
         </>
       )}
+
+      <GameMenu />
     </div>
   );
 }

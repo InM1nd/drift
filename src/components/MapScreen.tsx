@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRunStore } from "../state/runStore";
 import { getMapNodeById } from "../data/mapNodes";
+import { GameMenu } from "./GameMenu";
 import { RoomBackdrop } from "./RoomBackdrop";
 import { CreditsIcon, HullIcon, ThreatIcon } from "./icons";
 import { NODE_ICONS } from "./mapIcons";
@@ -137,6 +138,8 @@ export function MapScreen() {
           </button>
         </div>
       )}
+
+      <GameMenu />
     </div>
   );
 }

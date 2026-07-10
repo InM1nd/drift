@@ -26,7 +26,7 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: stretch;
   min-height: 3.5rem;
-  padding-right: max(0.65rem, calc(var(--style-switch-reserve) + 0.35rem));
+  padding-right: 3.5rem;
   border-bottom: 1px solid var(--line);
   color: var(--ink-soft);
   font-family: var(--mono);
@@ -1803,6 +1803,73 @@
 
   :root[data-visual-style="pixel"] .card {
     width: 9.35rem;
+  }
+}
+
+/* Широкие десктопные окна оставляют сканирующую область почти пустой (высота
+   растёт под minmax(17rem, 1fr)) — колода/сброс и легенда эффектов переезжают
+   в её свободный верхний угол, рядом со счётчиком контактов. */
+@media (min-width: 64rem) {
+  .console-tools {
+    position: fixed;
+    top: calc(3.5rem + env(safe-area-inset-top) + 0.7rem);
+    right: max(0.85rem, env(safe-area-inset-right));
+    z-index: 12;
+  }
+
+  .effect-legend-menu {
+    top: calc(100% + 0.35rem);
+    bottom: auto;
+    transform-origin: top right;
+  }
+
+  /* Журнал переезжает на место счётчика контактов в левый верхний угол арены —
+     якорим через position:fixed от известной высоты top-bar (3.5rem), т.к. сама
+     арена "плавающая" по высоте (minmax(17rem, 1fr)) и не годится как якорь. */
+  .scanner-telemetry > span:first-child {
+    visibility: hidden;
+  }
+
+  .log {
+    position: fixed;
+    top: calc(3.5rem + env(safe-area-inset-top) + 0.55rem);
+    left: max(0.85rem, env(safe-area-inset-left));
+    z-index: 12;
+    width: min(22rem, calc(100vw - 24rem));
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--panel) 92%, var(--bg));
+  }
+
+  /* Завершение хода и командная строка переезжают в нижние углы арены — якорим
+     через position:absolute от .cockpit-console: её верхний край совпадает с
+     нижним краем арены (соседние строки грида), это надёжнее, чем считать
+     реальную высоту консоли (она "дышит" от количества карт в руке). */
+  .console-footer {
+    border-top: none;
+    min-height: 0;
+  }
+
+  .end-turn {
+    position: absolute;
+    bottom: calc(100% + 0.65rem);
+    right: 0.85rem;
+    margin: 0;
+    z-index: 12;
+  }
+
+  .selection-readout {
+    position: absolute;
+    bottom: calc(100% + 0.65rem);
+    left: 0.85rem;
+    z-index: 12;
+    max-width: 14rem;
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--panel) 92%, var(--bg));
+  }
+
+  .scanner-footer > span:first-child,
+  .scanner-footer > span:last-child {
+    visibility: hidden;
   }
 }
 

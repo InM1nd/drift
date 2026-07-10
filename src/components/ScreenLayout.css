@@ -26,7 +26,7 @@
   align-items: center;
   min-height: calc(4.4rem + env(safe-area-inset-top));
   margin: 0 -1rem;
-  padding: calc(0.65rem + env(safe-area-inset-top)) max(1rem, calc(var(--style-switch-reserve) + 0.45rem)) 0.65rem 1rem;
+  padding: calc(0.65rem + env(safe-area-inset-top)) 3.5rem 0.65rem 1rem;
   border-bottom: 1px solid var(--line);
   text-align: left;
 }
@@ -687,7 +687,10 @@
 :root[data-visual-style="hud"] .equipment-item,
 :root[data-visual-style="hud"] .rest-choice,
 :root[data-visual-style="hud"] .map-node:not(.locked),
-:root[data-visual-style="hud"] .deck-list button {
+:root[data-visual-style="hud"] .deck-list button,
+:root[data-visual-style="hud"] .game-menu-toggle,
+:root[data-visual-style="hud"] .game-menu-panel,
+:root[data-visual-style="hud"] .game-menu-action {
   clip-path: polygon(var(--corner-cut) 0, 100% 0, 100% calc(100% - var(--corner-cut)), calc(100% - var(--corner-cut)) 100%, 0 100%, 0 var(--corner-cut));
   border-color: var(--line);
 }
@@ -749,7 +752,10 @@
 :root[data-visual-style="pixel"] .map-node,
 :root[data-visual-style="pixel"] .deck-list button,
 :root[data-visual-style="pixel"] .screen-resources,
-:root[data-visual-style="pixel"] .run-end-stats {
+:root[data-visual-style="pixel"] .run-end-stats,
+:root[data-visual-style="pixel"] .game-menu-toggle,
+:root[data-visual-style="pixel"] .game-menu-panel,
+:root[data-visual-style="pixel"] .game-menu-action {
   border: var(--outline-w) solid var(--outline);
   background: color-mix(in srgb, var(--panel) 95%, var(--bg));
   box-shadow:

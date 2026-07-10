@@ -51,7 +51,6 @@
   --hud-frame-alpha: 16%;
   --hud-scanline-alpha: 0.016;
   --hud-hp-glow: #7defff;
-  --style-switch-reserve: 0rem;
   color-scheme: dark;
 }
 
@@ -72,10 +71,6 @@
   --status-breach: #ff5c66;
   --status-reflect: #ff7ad1;
   --corrosion: var(--status-corrosion);
-}
-
-:root[data-style-switch="on"] {
-  --style-switch-reserve: 8.75rem;
 }
 
 :root[data-visual-style="pixel"] {
@@ -221,10 +216,6 @@ button:focus-visible {
 
 .visual-style-switch {
   display: inline-flex;
-  position: fixed;
-  z-index: 30;
-  top: max(0.5rem, env(safe-area-inset-top));
-  right: max(0.5rem, env(safe-area-inset-right));
   border: 1px solid var(--line);
   background: var(--panel);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24);
@@ -285,16 +276,4 @@ button:focus-visible {
 :root[data-visual-style="pixel"] .status-icon-pixel,
 :root[data-visual-style="pixel"] .map-icon-pixel {
   display: inline-block;
-}
-
-@media (max-width: 40rem) {
-  :root[data-style-switch="on"] {
-    --style-switch-reserve: 7.85rem;
-  }
-}
-
-@media (max-width: 23rem) {
-  :root[data-style-switch="on"] {
-    --style-switch-reserve: 7.3rem;
-  }
 }
