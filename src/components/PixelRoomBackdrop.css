@@ -1,0 +1,69 @@
+.pixel-room-backdrop {
+  display: none;
+}
+
+:root[data-visual-style="pixel"] .pixel-room-backdrop {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.pixel-room-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+  filter: saturate(0.92) contrast(1.06) brightness(0.78);
+  opacity: 0.94;
+}
+
+.pixel-room-atmo {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 40%, transparent 0 22%, color-mix(in srgb, var(--bg) 24%, transparent) 62%, var(--bg) 112%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 18%, transparent), transparent 36%, color-mix(in srgb, var(--bg) 64%, transparent)),
+    url("../assets/pixel/atmo-tile.png");
+  background-size: auto, auto, 72px 72px;
+  opacity: 0.72;
+}
+
+.pixel-room-boss .pixel-room-image,
+.pixel-room-run-end .pixel-room-image {
+  filter: saturate(0.98) contrast(1.08) brightness(0.86);
+}
+
+.pixel-room-map .pixel-room-image,
+.pixel-room-shop .pixel-room-image,
+.pixel-room-rest .pixel-room-image,
+.pixel-room-reward .pixel-room-image {
+  filter: saturate(0.84) contrast(1.08) brightness(0.62);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pixel-room-atmo {
+    animation: pixel-atmo-drift 12s linear infinite;
+  }
+}
+
+@keyframes pixel-atmo-drift {
+  from {
+    background-position: 0 0, 0 0, 0 0;
+  }
+  to {
+    background-position: 0 0, 0 0, 72px 72px;
+  }
+}
+
+@media (max-width: 40rem) {
+  .pixel-room-image {
+    width: 145%;
+    max-width: none;
+    transform: translateX(-16%);
+  }
+}
