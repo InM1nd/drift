@@ -2,7 +2,6 @@ import { CreditsIcon, HullIcon, ThreatIcon } from "../icons";
 import { NODE_ICONS } from "../mapIcons";
 import { RoomBackdrop } from "../RoomBackdrop";
 import type { MapNodeType } from "../../types/run";
-import { PixelMedallion, PixelPanel } from "./PixelChrome";
 import "./PixelLayout.css";
 
 interface PixelMapNode {
@@ -38,16 +37,6 @@ function mapNodeById(mapNodes: PixelMapNode[], id: string): PixelMapNode {
   return node ?? mapNodes[0];
 }
 
-function nodeTypeLabel(type: string): string {
-  if (type === "compartment") return "Отсек";
-  if (type === "elite") return "Страж";
-  if (type === "boss") return "Ядро-Страж";
-  if (type === "shop") return "Терминал снабжения";
-  if (type === "rest") return "Ремонтный отсек";
-  if (type === "signal") return "Сигнал";
-  return type;
-}
-
 export function PixelMapLayout({
   title,
   mapNodes,
@@ -72,94 +61,94 @@ export function PixelMapLayout({
     <div className="screen-layout map-screen pixel-map-screen">
       <RoomBackdrop kind="map" seed={currentNode.id} />
 
-      <PixelPanel className="pixel-map-header">
+      <header className="pixel-map-header">
         <div className="pixel-map-title">
           <span className="screen-kicker">NAV // ASTROLABE</span>
           <h1>{title}</h1>
         </div>
         <div className="pixel-map-vitals">
-          <PixelMedallion><HullIcon /> {playerHp}/{playerMaxHp}</PixelMedallion>
-          <PixelMedallion><CreditsIcon /> ₡ {credits}</PixelMedallion>
-          <PixelMedallion><ThreatIcon /> T{threatLevel}</PixelMedallion>
+          <span><HullIcon /><strong>{playerHp}/{playerMaxHp}</strong></span>
+          <span><CreditsIcon /><strong>₡ {credits}</strong></span>
+          <span><ThreatIcon /><strong>T{threatLevel}</strong></span>
         </div>
-      </PixelPanel>
+        <div className="pixel-map-manifest" aria-label="Состав забега">
+          <span>Протоколы <strong>{deckSize}</strong></span>
+          <span>Модули <strong>{moduleCount}</strong></span>
+          <span>Инъекторы <strong>{injectorCount}</strong></span>
+        </div>
+      </header>
 
-      <p className="screen-hint">
-        Контур забега: <strong>Протоколы {deckSize}</strong> · <strong>Модули {moduleCount}</strong> · <strong>Инъекторы {injectorCount}</strong>
-      </p>
-
-      <PixelPanel className="pixel-map-stage">
+      <section className={`pixel-map-stage pixel-map-stage-${displayLayers.length}`}>
         <div aria-hidden="true" className="pixel-map-astrolabe-rings">
           <span />
           <span />
           <span />
         </div>
-        {displayLayers.map((layer, layerIndex) => {
-          const isFullyVisible = layerIndex <= currentLayerIndex + 1;
-          return (
-            <div className="pixel-map-layer" key={layerIndex}>
-              <PixelMedallion className="pixel-map-layer-token">L{String(layerIndex + 1).padStart(2, "0")}</PixelMedallion>
-              <div className="pixel-map-layer-nodes">
-                {layer.map((nodeId) => {
-                  if (!isFullyVisible) {
+        <div className="pixel-map-route">
+          {displayLayers.map((layer, layerIndex) => {
+            const isFullyVisible = layerIndex <= currentLayerIndex + 1;
+            return (
+              <div className="pixel-map-layer" key={layerIndex}>
+                <div className="pixel-map-layer-token">
+                  <span>L{String(layerIndex + 1).padStart(2, "0")}</span>
+                </div>
+                <div className="pixel-map-layer-nodes">
+                  {layer.map((nodeId) => {
+                    if (!isFullyVisible) {
+                      return (
+                        <div className="pixel-map-node locked" key={nodeId} title="Пока неизвестно">
+                          <span aria-hidden="true">?</span>
+                          <small>Неизвестно</small>
+                        </div>
+                      );
+                    }
+
+                    const node = mapNodeById(mapNodes, nodeId);
+                    const resolved = resolvedNodeIds.includes(nodeId);
+                    const isCurrent = nodeId === currentNodeId;
+                    const isChoice = awaitingChoice && currentNode.next.includes(nodeId);
+                    const classes = [
+                      "pixel-map-node",
+                      resolved ? "resolved" : "",
+                      isCurrent && !awaitingChoice ? "current" : "",
+                      isChoice ? "choice" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ");
+
                     return (
-                      <div className="pixel-map-node locked" key={nodeId} title="Пока неизвестно">
-                        ?
+                      <div className={classes} key={nodeId}>
+                        <span className="pixel-map-node-icon">{NODE_ICONS[node.type]}</span>
+                        <span className="pixel-map-node-label">{node.label}</span>
+                        {resolved ? <small>Пройдено</small> : null}
                       </div>
                     );
-                  }
-
-                  const node = mapNodeById(mapNodes, nodeId);
-                  const resolved = resolvedNodeIds.includes(nodeId);
-                  const isCurrent = nodeId === currentNodeId;
-                  const isChoice = awaitingChoice && currentNode.next.includes(nodeId);
-                  const classes = [
-                    "pixel-map-node",
-                    resolved ? "resolved" : "",
-                    isCurrent && !awaitingChoice ? "current" : "",
-                    isChoice ? "choice" : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ");
-
-                  return (
-                    <div className={classes} key={nodeId}>
-                      <span className="pixel-map-node-icon">{NODE_ICONS[node.type]}</span>
-                      <span className="pixel-map-node-label">{node.label}</span>
-                      {resolved ? <small>OK</small> : null}
-                    </div>
-                  );
-                })}
+                  })}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </PixelPanel>
+            );
+          })}
+        </div>
+      </section>
 
-      <PixelPanel className="pixel-map-context">
+      <div className="pixel-map-context">
         {awaitingChoice ? (
-          <>
-            <p className="screen-hint">{showBranchHint ? "Подсказка: выбирай ветку с учётом ресурсов и состава колоды." : "Куда дальше?"}</p>
-            <div className="pixel-map-choices">
-              {currentNode.next.map((nextId) => {
-                const nextNode = mapNodeById(mapNodes, nextId);
-                return (
-                  <button className="primary-button" key={nextId} onClick={() => onChoose(nextId)} type="button">
-                    {NODE_ICONS[nextNode.type]} {nextNode.label}
-                  </button>
-                );
-              })}
-            </div>
-          </>
-        ) : (
-          <div className="pixel-map-enter">
-            <span className="action-label">Текущая точка // {nodeTypeLabel(currentNode.type)}</span>
-            <button className="primary-button" onClick={onEnterNode} type="button">
-              Войти: {currentNode.label} →
-            </button>
+          <div className="pixel-map-choices" aria-label={showBranchHint ? "Выбери ветку с учётом ресурсов и состава колоды" : "Выбери следующий узел"}>
+            {currentNode.next.map((nextId) => {
+              const nextNode = mapNodeById(mapNodes, nextId);
+              return (
+                <button className="primary-button pixel-map-action" key={nextId} onClick={() => onChoose(nextId)} type="button">
+                  {NODE_ICONS[nextNode.type]} {nextNode.label}
+                </button>
+              );
+            })}
           </div>
+        ) : (
+          <button className="primary-button pixel-map-action" onClick={onEnterNode} type="button">
+            Войти: {currentNode.label} →
+          </button>
         )}
-      </PixelPanel>
+      </div>
     </div>
   );
 }

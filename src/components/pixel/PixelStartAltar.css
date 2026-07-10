@@ -17,6 +17,10 @@
   z-index: 1;
   width: min(100%, 30rem);
   margin-bottom: -1.5rem;
+  /* drift-logo-pixel.png сама по себе не идеально центрирована в канвасе
+     (кончик центрального шпиля на x=755 из 1536px, а не 768) — компенсируем
+     сдвигом вправо на ту же долю ширины, чтобы совпасть с центром ниши меню. */
+  transform: translateX(0.85%);
   filter: drop-shadow(0 0.5rem 0 var(--relic-bg));
 }
 

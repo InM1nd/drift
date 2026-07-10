@@ -10,11 +10,13 @@ import runEndDefeatBackdrop from "../assets/pixel/run-end-defeat.png";
 import runEndVictoryBackdrop from "../assets/pixel/run-end-victory.png";
 import shopBackdrop from "../assets/pixel/shop.png";
 import signalBackdrop from "../assets/pixel/signal.png";
-import type { HudRoomKind } from "./HudRoomBackdrop";
+import type { MapNodeType } from "../types";
 import "./PixelRoomBackdrop.css";
 
+export type RoomKind = MapNodeType | "map" | "reward" | "run-end";
+
 interface PixelRoomBackdropProps {
-  kind: HudRoomKind;
+  kind: RoomKind;
   seed?: string;
 }
 
@@ -26,7 +28,7 @@ function variantFromSeed(seed: string): number {
   return hash % COMPARTMENT_VARIANTS.length;
 }
 
-function resolveBackdrop(kind: HudRoomKind, seed: string): string {
+function resolveBackdrop(kind: RoomKind, seed: string): string {
   if (kind === "compartment") return COMPARTMENT_VARIANTS[variantFromSeed(seed)];
   if (kind === "map") return mapBackdrop;
   if (kind === "elite") return eliteBackdrop;

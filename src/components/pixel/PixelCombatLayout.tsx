@@ -7,7 +7,7 @@ import { EnemySprite, PlayerSprite } from "../CombatSprite";
 import { RoomBackdrop } from "../RoomBackdrop";
 import { ProtocolIcon } from "../ProtocolIcon";
 import { StatusChips } from "../StatusChips";
-import type { HudRoomKind } from "../HudRoomBackdrop";
+import type { RoomKind } from "../PixelRoomBackdrop";
 import {
   DiscardIcon,
   DrawIcon,
@@ -21,7 +21,7 @@ import "./PixelLayout.css";
 
 interface PixelCombatLayoutProps {
   nodeLabel: string;
-  nodeType: HudRoomKind;
+  nodeType: RoomKind;
   nodeSeed: string;
   phaseLabel: string;
   stateValue: string;

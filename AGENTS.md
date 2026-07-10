@@ -14,7 +14,7 @@ Canonical rules for any agent working in this repo (Claude Code, Cursor, Codex, 
 
 ## Absolute rules
 
-- **No hardcoded colors in component CSS** — `var(--...)` from `src/index.css` only. Two visual styles (`data-visual-style="hud"|"pixel"`, see docs/09, docs/10) switch at runtime; a hardcoded color silently breaks whichever style didn't define it.
+- **No hardcoded colors in component CSS** — `var(--...)` from `src/index.css` only. `data-visual-style="pixel"` is pinned statically on `<html>` (see docs/10 — the earlier HUD candidate in docs/09 was rejected and removed); a hardcoded color silently breaks theming.
 - **`id` is unique across every content array, not just within its own file** — TypeScript won't catch a cross-file collision. Exact check command and precedent: [`docs/12-content-recipes.md`](docs/12-content-recipes.md).
 - **All game randomness goes through the seeded PRNG** (`src/engine/rng.ts`), never raw `Math.random()`, anywhere in `src/engine` or `src/state`. Mid-combat saves must restore byte-for-byte from the RNG cursor — `Math.random()` breaks that silently.
 - **XState `combatMachine.ts` context is pure serializable data — no functions/closures.** Every action clones (`structuredClone`) before mutating, never mutates a context object in place (a past bug: in-place mutation silently corrupted previously-saved snapshots holding the same reference).

@@ -4,6 +4,9 @@ import type { CombatMachineEvent } from "../engine/combatMachine";
 import { useSettingsStore } from "../state/settingsStore";
 import { HomeIcon, PlayIcon, SettingsIcon } from "./icons";
 import { SettingsPanel } from "./SettingsPanel";
+import menuContinueIcon from "../assets/pixel/icon-continue.png";
+import menuSettingsIcon from "../assets/pixel/icon-settings.png";
+import menuTraceIcon from "../assets/pixel/icon-trace.png";
 import "./ScreenLayout.css";
 import "./GameMenu.css";
 
@@ -39,7 +42,8 @@ export function GameMenu({ devTools }: GameMenuProps) {
         }}
         type="button"
       >
-        ☰
+        <span aria-hidden="true" className="game-menu-toggle-hud">☰</span>
+        <img alt="" aria-hidden="true" className="game-menu-toggle-pixel" src={menuSettingsIcon} />
       </button>
     );
   }
@@ -78,7 +82,9 @@ export function GameMenu({ devTools }: GameMenuProps) {
             role="tab"
             type="button"
           >
-            <SettingsIcon /> Настройки
+            <SettingsIcon />
+            <img alt="" aria-hidden="true" className="game-menu-tab-pixel-icon" src={menuSettingsIcon} />
+            Настройки
           </button>
         </div>
 
@@ -87,6 +93,7 @@ export function GameMenu({ devTools }: GameMenuProps) {
             <div className="game-menu-actions">
               <button className="game-menu-action primary" onClick={() => setOpen(false)} type="button">
                 <PlayIcon />
+                <img alt="" aria-hidden="true" className="game-menu-action-pixel-icon" src={menuContinueIcon} />
                 <span className="card-name">Продолжить</span>
                 <span className="card-desc">Вернуться в игру</span>
               </button>
@@ -99,6 +106,7 @@ export function GameMenu({ devTools }: GameMenuProps) {
                 type="button"
               >
                 <HomeIcon />
+                <img alt="" aria-hidden="true" className="game-menu-action-pixel-icon" src={menuTraceIcon} />
                 <span className="card-name">Главное меню</span>
                 <span className="card-desc">Забег не прервётся — сохранён автоматически</span>
               </button>

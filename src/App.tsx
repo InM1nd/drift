@@ -24,7 +24,6 @@ function App() {
   const notice = useRunStore((s) => s.uiNotice);
   const clearNotice = useRunStore((s) => s.clearUiNotice);
   const threatLevelsUnlocked = useMetaStore((s) => s.threatLevelsUnlocked);
-  const visualStyle = useSettingsStore((s) => s.visualStyle);
   const atTitle = useSettingsStore((s) => s.atTitle);
   const setAtTitle = useSettingsStore((s) => s.setAtTitle);
 
@@ -52,10 +51,6 @@ function App() {
       setBootState("start");
     });
   }, []);
-
-  useEffect(() => {
-    document.documentElement.dataset.visualStyle = visualStyle;
-  }, [visualStyle]);
 
   useEffect(() => {
     if (!notice) return;
