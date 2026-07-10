@@ -4,6 +4,7 @@ import { getCardById } from "../data/cards";
 import { getModuleById } from "../data/modules";
 import { getInjectorById } from "../data/injectors";
 import type { ShopOffer } from "../types";
+import { GameMenu } from "./GameMenu";
 import { HudRoomBackdrop } from "./HudRoomBackdrop";
 import { CreditsIcon, InjectorIcon, ModuleIcon } from "./icons";
 import { ProtocolIcon } from "./ProtocolIcon";
@@ -137,6 +138,8 @@ export function ShopScreen() {
       <button type="button" className="primary-button" onClick={completeNode}>
         Дальше →
       </button>
+
+      <GameMenu />
     </div>
   );
 }

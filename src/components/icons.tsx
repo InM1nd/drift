@@ -160,3 +160,20 @@ export function LootIcon(props: IconProps) {
 export function UpgradeIcon(props: IconProps) {
   return <IconFrame {...props}><path d="m12 3 5 5h-3v6h-4V8H7l5-5ZM5 17h14v4H5Z" /></IconFrame>;
 }
+
+export function PlayIcon(props: IconProps) {
+  return <IconFrame {...props}><path d="M6 4v16l14-8L6 4Z" /></IconFrame>;
+}
+
+export function HomeIcon(props: IconProps) {
+  return <IconFrame {...props}><path d="M4 11 12 4l8 7M6 10v10h5v-6h2v6h5V10" /></IconFrame>;
+}
+
+export function SettingsIcon(props: IconProps) {
+  return (
+    <IconFrame {...props}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2v3m0 14v3M2 12h3m14 0h3m-3.5-6.5-2 2m-9 9-2 2m0-13 2 2m9 9 2 2" />
+    </IconFrame>
+  );
+}

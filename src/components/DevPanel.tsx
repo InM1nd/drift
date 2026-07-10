@@ -13,26 +13,12 @@ interface DevPanelProps {
 const STATUSES: Status[] = ["corrosion", "overdrive", "stabilization", "jamming", "breach", "reflect"];
 
 export function DevPanel({ combat, send }: DevPanelProps) {
-  const [open, setOpen] = useState(false);
   const [seed, setSeed] = useState(1);
   const [restartEnemyId, setRestartEnemyId] = useState(ALL_ENEMIES[0].id);
 
-  if (!open) {
-    return (
-      <button type="button" className="dev-toggle" onClick={() => setOpen(true)}>
-        dev
-      </button>
-    );
-  }
-
   return (
     <div className="dev-panel">
-      <div className="dev-panel-header">
-        <span>Dev-панель · сид {combat.rng.seed}</span>
-        <button type="button" onClick={() => setOpen(false)}>
-          ×
-        </button>
-      </div>
+      <p className="dev-panel-seed">Сид боя: {combat.rng.seed}</p>
 
       <div className="dev-row">
         <span>HP Ныряльщика</span>

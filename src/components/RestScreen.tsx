@@ -1,5 +1,6 @@
 import { useRunStore } from "../state/runStore";
 import { getCardById, getUpgradedCardId } from "../data/cards";
+import { GameMenu } from "./GameMenu";
 import { HudRoomBackdrop } from "./HudRoomBackdrop";
 import { HullIcon } from "./icons";
 import { ProtocolIcon } from "./ProtocolIcon";
@@ -85,6 +86,8 @@ export function RestScreen() {
         })}
         {upgradable.size === 0 ? <p className="screen-hint">Подходящих Протоколов для апгрейда нет.</p> : null}
       </div>
+
+      <GameMenu />
     </div>
   );
 }

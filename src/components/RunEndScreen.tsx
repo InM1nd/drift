@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useRunStore } from "../state/runStore";
 import { useMetaStore } from "../state/metaStore";
+import { GameMenu } from "./GameMenu";
 import { HudRoomBackdrop } from "./HudRoomBackdrop";
 import { ScreenHeader } from "./ScreenHeader";
 import "./ScreenLayout.css";
@@ -49,6 +50,8 @@ export function RunEndScreen() {
       <button type="button" className="primary-button" onClick={() => startNewRun(nextThreat)}>
         Новый забег
       </button>
+
+      <GameMenu />
     </div>
   );
 }

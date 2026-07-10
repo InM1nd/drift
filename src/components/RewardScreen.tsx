@@ -3,6 +3,7 @@ import { useRunStore } from "../state/runStore";
 import { getCardById } from "../data/cards";
 import { getModuleById } from "../data/modules";
 import { getInjectorById } from "../data/injectors";
+import { GameMenu } from "./GameMenu";
 import { HudRoomBackdrop } from "./HudRoomBackdrop";
 import { ProtocolIcon } from "./ProtocolIcon";
 import { ScreenHeader } from "./ScreenHeader";
@@ -76,6 +77,8 @@ export function RewardScreen() {
           </button>
         </div>
       </div>
+
+      <GameMenu />
     </div>
   );
 }

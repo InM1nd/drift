@@ -11,7 +11,7 @@ import { getMapNodeById } from "../data/mapNodes";
 import { useRunStore } from "../state/runStore";
 import { EnemySprite, PlayerSprite } from "./CombatSprite";
 import { CardEffectSummary, EffectLegend } from "./CardEffectSummary";
-import { DevPanel } from "./DevPanel";
+import { GameMenu } from "./GameMenu";
 import { HudRoomBackdrop } from "./HudRoomBackdrop";
 import { AttackIcon, DiscardIcon, DrawIcon, EnergyIcon, HullIcon, InjectorIcon, RepairIcon, ShieldIcon } from "./icons";
 import { ProtocolIcon } from "./ProtocolIcon";
@@ -398,7 +398,7 @@ export function CombatScreen() {
         </div>
       </section>
 
-      {import.meta.env.DEV && <DevPanel combat={combat} send={send} />}
+      <GameMenu devTools={{ combat, send }} />
     </div>
   );
 }

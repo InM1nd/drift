@@ -1,0 +1,152 @@
+button.game-menu-toggle {
+  position: fixed;
+  z-index: 20;
+  top: max(0.5rem, env(safe-area-inset-top));
+  right: max(0.5rem, env(safe-area-inset-right));
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  min-width: 44px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24);
+}
+
+div.game-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 4, 6, 0.72);
+  backdrop-filter: blur(3px);
+  padding: 1.25rem;
+}
+
+.game-menu-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  width: min(100%, 27rem);
+  max-height: 85vh;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.45);
+  padding: 1.15rem;
+  font-family: var(--sans);
+  color: var(--ink);
+}
+
+.game-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.game-menu-header h2 {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.game-menu-close {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.game-menu-close:hover {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+
+.game-menu-tabs {
+  display: flex;
+  border: 1px solid var(--line);
+}
+
+.game-menu-tabs button {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.game-menu-tabs button + button {
+  border-left: 1px solid var(--line);
+}
+
+.game-menu-tabs button.active {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.game-menu-body {
+  overflow-y: auto;
+  padding-right: 0.15rem;
+}
+
+.game-menu-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: 0.65rem;
+}
+
+.game-menu-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  min-height: 6.5rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.game-menu-action:hover,
+.game-menu-action:focus-visible {
+  border-color: var(--accent);
+}
+
+.game-menu-action .game-icon {
+  width: 1.3rem;
+  height: 1.3rem;
+  color: var(--accent);
+}
+
+.game-menu-action.primary {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+@media (min-width: 48rem) {
+  .game-menu-panel {
+    width: min(100%, 32rem);
+    padding: 1.4rem;
+  }
+}
