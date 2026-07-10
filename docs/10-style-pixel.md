@@ -71,6 +71,13 @@ Reference lock:
 - Источник: пакеты `@fontsource/press-start-2p` и `@fontsource/ibm-plex-mono`.
 - Подключение: `@font-face` в `src/index.css`, без CDN (PWA/offline-safe).
 
+#### Логотип титульного экрана
+
+- Pixel-вариант использует отдельный `src/assets/brand/drift-logo-pixel.png`: прозрачный реликварный crest в языке Abyssal Cathedral с fossil-gold механикой, cyan-витражами и редкими magenta следами инфекции.
+- Точный wordmark `dRift` остаётся DOM-текстом на локальном `PixelDisplay` поверх центрального слота ассета; bone-ivory буквы получают жёсткую 3px-обводку `--outline` без blur.
+- Ассет выводится через `image-rendering: pixelated`; HUD-растр остаётся отдельным и не меняется.
+- На ширине 320–390px crest масштабируется до ширины контейнера, не обрезается и не создаёт горизонтальный скролл.
+
 #### Asset manifest (Pixel backdrops)
 
 Файлы в `src/assets/pixel/`:
