@@ -212,3 +212,42 @@ describe("runStore — Уровень угрозы (docs/11-threat-level.md)", (
     expect(useMetaStore.getState().threatLevelsUnlocked).toBe(false);
   });
 });
+
+describe("runStore — Сигнал и отложенный outcome reveal", () => {
+  it("взлом сначала фиксирует outcome и не уводит с экрана события", () => {
+    useRunStore.getState().startNewRun();
+    useRunStore.setState({ screen: "event" });
+    useRunStore.getState().resolveSignalHack();
+    const state = useRunStore.getState();
+    expect(state.screen).toBe("event");
+    expect(state.signalOutcome).not.toBeNull();
+  });
+
+  it("подтверждение успешного outcome начисляет кредиты и завершает узел", () => {
+    useRunStore.getState().startNewRun();
+    useRunStore.setState({
+      screen: "event",
+      signalOutcome: { kind: "success", text: "ok", creditsDelta: 20, damage: 0 },
+      credits: 100,
+    });
+    useRunStore.getState().acknowledgeSignalOutcome();
+    const state = useRunStore.getState();
+    expect(state.credits).toBe(120);
+    expect(state.signalOutcome).toBeNull();
+    expect(state.screen).toBe("map");
+  });
+
+  it("подтверждение урона может завершить забег при летальном HP", () => {
+    useRunStore.getState().startNewRun();
+    useRunStore.setState({
+      screen: "event",
+      player: { hp: 6, maxHp: 70 },
+      signalOutcome: { kind: "damage", text: "boom", creditsDelta: 0, damage: 8 },
+    });
+    useRunStore.getState().acknowledgeSignalOutcome();
+    const state = useRunStore.getState();
+    expect(state.screen).toBe("runEnd");
+    expect(state.runOutcome).toBe("defeat");
+    expect(state.signalOutcome).toBeNull();
+  });
+});

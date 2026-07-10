@@ -170,6 +170,18 @@ describe("combatMachine", () => {
     expect(after.selectedInjectorIndex).toBeNull();
   });
 
+  it("недостаток энергии не играет карту и пишет объяснение в журнал", () => {
+    const combat = createInitialCombatState(70, ["strike"], ["hull-turret"], 123);
+    combat.player.energy = 0;
+    const actor = createActor(combatMachine, { input: { combat } });
+    actor.start();
+    actor.send({ type: "SELECT_CARD", index: 0 });
+    actor.send({ type: "TARGET_ENEMY", index: 0 });
+    const state = actor.getSnapshot().context.combat;
+    expect(state.hand).toEqual(["strike"]);
+    expect(state.log.at(-1)).toContain("Недостаточно заряда");
+  });
+
   it("Ядро-Страж: призыв подкрепления во 2-й фазе не даёт ему походить в тот же проход runEnemyTurn", () => {
     const combat = createInitialCombatState(70, STARTER_DECK_IDS, ["core-guardian"], 1);
     combat.enemies[0].hp = 70; // ниже 50% от maxHp (140–160) — фаза 2, первый ход после порога это summon

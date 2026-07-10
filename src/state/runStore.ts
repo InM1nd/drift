@@ -7,7 +7,7 @@ import { generateMap } from "../engine/mapGenerator";
 import { rollInjectorDrop } from "../engine/lootRolls";
 import { getThreatModifiers } from "../engine/threatLevel";
 import { getMapNodeById } from "../data/mapNodes";
-import { CARDS, STARTER_DECK_IDS } from "../data/cards";
+import { CARDS, STARTER_DECK_IDS, getCardById } from "../data/cards";
 import { MODULES } from "../data/modules";
 import { INJECTORS } from "../data/injectors";
 import { useMetaStore } from "./metaStore";
@@ -70,6 +70,24 @@ interface RunState {
   pendingInjectorId: string | null;
   /** Уровень угрозы (docs/11-threat-level.md), 0 = без модификатора. Выбирается при старте, не меняется в течение забега. */
   threatLevel: number;
+  /** Глобальное системное уведомление для короткого debrief в UI. */
+  uiNotice: {
+    id: number;
+    kind: "success" | "warning" | "damage" | "system";
+    text: string;
+    sticky?: boolean;
+  } | null;
+  /** Результат события "Сигнал", подтверждается игроком на EventScreen. */
+  signalOutcome: {
+    kind: "success" | "damage";
+    text: string;
+    creditsDelta: number;
+    damage: number;
+  } | null;
+  /** Кредиты, полученные за последний бой перед RewardScreen. */
+  lastCombatRewardCredits: number;
+  /** Флаг только для завершённого забега: была ли в этом конце разблокировка угрозы. */
+  lastRunUnlockedThreat: boolean;
 }
 
 interface RunActions {
@@ -80,6 +98,7 @@ interface RunActions {
   buyShopOffer: (offer: ShopOffer) => void;
   payRemoveCard: (index: number) => void;
   resolveSignalHack: () => void;
+  acknowledgeSignalOutcome: () => void;
   skipSignal: () => void;
   updateActiveCombat: (combat: CombatState) => void;
   addCardToDeck: (cardId: string) => void;
@@ -91,6 +110,7 @@ interface RunActions {
   incrementRemovals: () => void;
   completeNode: () => void;
   choose: (nextId: string) => void;
+  clearUiNotice: () => void;
 }
 
 type RunStore = RunState & RunActions;
@@ -125,6 +145,10 @@ function createInitialRunState(seed: number, threatLevel = 0): RunState {
     injectorIds: [],
     pendingInjectorId: null,
     threatLevel,
+    uiNotice: null,
+    signalOutcome: null,
+    lastCombatRewardCredits: 0,
+    lastRunUnlockedThreat: false,
   };
 }
 
@@ -194,7 +218,15 @@ export const useRunStore = create<RunStore>()(
 
       resolveCombat: (outcome, finalPlayerHp, finalOverdrive) => {
         if (outcome === "defeat") {
-          set({ screen: "runEnd", runOutcome: "defeat", activeCombatState: null, combatSeed: null });
+          set({
+            screen: "runEnd",
+            runOutcome: "defeat",
+            activeCombatState: null,
+            combatSeed: null,
+            uiNotice: { id: Date.now(), kind: "damage", text: "Связь с ныряльщиком потеряна.", sticky: true },
+            lastRunUnlockedThreat: false,
+            lastCombatRewardCredits: 0,
+          });
           return;
         }
         const state = get();
@@ -205,7 +237,9 @@ export const useRunStore = create<RunStore>()(
         if (node.type === "boss") {
           // Разблокировка Уровня угрозы (docs/11-threat-level.md): любая победа над
           // боссом, в т.ч. на Уровне 0, открывает все уровни 1–5 сразу — не лестницу.
-          useMetaStore.getState().unlockThreatLevels();
+          const metaState = useMetaStore.getState();
+          const shouldUnlockThreat = !metaState.threatLevelsUnlocked;
+          metaState.unlockThreatLevels();
           set({
             screen: "runEnd",
             runOutcome: "victory",
@@ -213,6 +247,16 @@ export const useRunStore = create<RunStore>()(
             activeCombatState: null,
             combatSeed: null,
             carriedOverdrive,
+            uiNotice: {
+              id: Date.now(),
+              kind: "success",
+              text: shouldUnlockThreat
+                ? "Ядро-Страж уничтожено. Уровни угрозы 1–5 разблокированы."
+                : "Ядро-Страж уничтожен. Маршрут очищен.",
+              sticky: true,
+            },
+            lastRunUnlockedThreat: shouldUnlockThreat,
+            lastCombatRewardCredits: 0,
           });
           return;
         }
@@ -249,11 +293,19 @@ export const useRunStore = create<RunStore>()(
           pendingModuleId: grantedModule?.id ?? null,
           injectorIds: grantedInjectorId ? [...state.injectorIds, grantedInjectorId] : state.injectorIds,
           pendingInjectorId: grantedInjectorId,
+          lastCombatRewardCredits: reward,
+          uiNotice: { id: Date.now(), kind: "success", text: `Сектор очищен. Получено ₡ ${reward}.` },
         });
       },
 
       claimReward: (cardId) => {
-        if (cardId) get().addCardToDeck(cardId);
+        if (cardId) {
+          const card = getCardById(cardId);
+          get().addCardToDeck(cardId);
+          set({ uiNotice: { id: Date.now(), kind: "success", text: `Протокол "${card.name}" добавлен в колоду.` } });
+        } else {
+          set({ uiNotice: { id: Date.now(), kind: "warning", text: "Награда пропущена. Канал очищен." } });
+        }
         set({ rewardOffers: [], pendingModuleId: null, pendingInjectorId: null });
         get().completeNode();
       },
@@ -266,13 +318,31 @@ export const useRunStore = create<RunStore>()(
         else if (found.kind === "module") set((s) => ({ ownedModuleIds: [...s.ownedModuleIds, found.id] }));
         else set((s) => ({ injectorIds: [...s.injectorIds, found.id] }));
         set((s) => ({ shopOffers: s.shopOffers.filter((o) => !(o.kind === found.kind && o.id === found.id)) }));
+        const itemName =
+          found.kind === "card"
+            ? getCardById(found.id).name
+            : found.kind === "module"
+              ? MODULES.find((m) => m.id === found.id)?.name ?? "Модуль"
+              : INJECTORS.find((i) => i.id === found.id)?.name ?? "Инъектор";
+        set({
+          uiNotice: {
+            id: Date.now(),
+            kind: "success",
+            text: `Покупка подтверждена: ${itemName} за ₡ ${found.price}.`,
+          },
+        });
       },
 
       payRemoveCard: (index) => {
         const price = REMOVAL_BASE_PRICE + REMOVAL_PRICE_STEP * get().removalsUsed;
         if (!get().spendCredits(price)) return;
+        const cardId = get().deck[index];
+        const cardName = cardId ? getCardById(cardId).name : "Протокол";
         get().removeCardFromDeck(index);
         get().incrementRemovals();
+        set({
+          uiNotice: { id: Date.now(), kind: "warning", text: `${cardName} удалён из колоды за ₡ ${price}.` },
+        });
       },
 
       // Сигнал: 50/50 взлом контейнера — кредиты или урон (Milestone A, единственное
@@ -281,17 +351,53 @@ export const useRunStore = create<RunStore>()(
         const state = get();
         const rng = { ...state.rng };
         const success = nextInt(rng, 2) === 0;
-        set({ rng });
+        set({ rng, signalOutcome: null });
         if (success) {
-          set((s) => ({ credits: s.credits + 20 }));
-          get().completeNode();
+          set({
+            signalOutcome: {
+              kind: "success",
+              text: "Данные извлечены. Контейнер выдал кредитный пакет.",
+              creditsDelta: 20,
+              damage: 0,
+            },
+          });
           return;
         }
-        get().damagePlayer(8);
+        set({
+          signalOutcome: {
+            kind: "damage",
+            text: "Контейнер выдал защитный разряд. Корпус получил повреждение.",
+            creditsDelta: 0,
+            damage: 8,
+          },
+        });
+      },
+
+      acknowledgeSignalOutcome: () => {
+        const outcome = get().signalOutcome;
+        if (!outcome) return;
+        set({ signalOutcome: null });
+        if (outcome.creditsDelta > 0) {
+          set((s) => ({ credits: s.credits + outcome.creditsDelta }));
+          set({
+            uiNotice: { id: Date.now(), kind: "success", text: `Сигнал расшифрован: +₡ ${outcome.creditsDelta}.` },
+          });
+        }
+        if (outcome.damage > 0) {
+          get().damagePlayer(outcome.damage);
+          if (get().screen !== "runEnd") {
+            set({
+              uiNotice: { id: Date.now(), kind: "damage", text: `Сигнал активировал ловушку: -${outcome.damage} HP.` },
+            });
+          }
+        }
         if (get().screen !== "runEnd") get().completeNode();
       },
 
-      skipSignal: () => get().completeNode(),
+      skipSignal: () => {
+        set({ uiNotice: { id: Date.now(), kind: "system", text: "Сигнал проигнорирован. Маршрут без изменений." } });
+        get().completeNode();
+      },
 
       // injectorIds зеркалится вместе со снапшотом боя — Инъекторы расходуются
       // внутри боя (combat.injectors), а инвентарь забега должен видеть это
@@ -343,6 +449,7 @@ export const useRunStore = create<RunStore>()(
         }),
 
       choose: (nextId) => set({ currentNodeId: nextId, screen: "map" }),
+      clearUiNotice: () => set({ uiNotice: null }),
     }),
     {
       name: RUN_SAVE_KEY,

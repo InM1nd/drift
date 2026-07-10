@@ -48,7 +48,10 @@ function playCard(state: CombatState, handIndex: number): void {
   if (!cardId) return;
   const card = getCardById(cardId);
   const cost = card.cost === "X" ? state.player.energy : Math.max(0, card.cost - state.player.nextCardCostReduction);
-  if (card.cost !== "X" && state.player.energy < cost) return;
+  if (card.cost !== "X" && state.player.energy < cost) {
+    state.log.push(`Недостаточно заряда для "${card.name}" (${state.player.energy}/${cost}).`);
+    return;
+  }
 
   state.player.energy -= cost;
   state.player.nextCardCostReduction = 0;
