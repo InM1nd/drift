@@ -1,3 +1,27 @@
+@font-face {
+  font-family: "PixelDisplay";
+  src:
+    url("./assets/fonts/press-start-2p-cyrillic-ext-400-normal.woff2") format("woff2"),
+    url("./assets/fonts/press-start-2p-cyrillic-400-normal.woff2") format("woff2"),
+    url("./assets/fonts/press-start-2p-latin-ext-400-normal.woff2") format("woff2"),
+    url("./assets/fonts/press-start-2p-latin-400-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "PlexMonoLocal";
+  src:
+    url("./assets/fonts/ibm-plex-mono-cyrillic-ext-400-normal.woff2") format("woff2"),
+    url("./assets/fonts/ibm-plex-mono-cyrillic-400-normal.woff2") format("woff2"),
+    url("./assets/fonts/ibm-plex-mono-latin-ext-400-normal.woff2") format("woff2"),
+    url("./assets/fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
 :root {
   --bg: #05080b;
   --panel: rgba(13, 22, 28, 0.8);
@@ -16,7 +40,8 @@
   --status-reflect: #ff7ad1;
   --corrosion: var(--status-corrosion);
   --sans: var(--mono);
-  --mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  --mono: "PlexMonoLocal", ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  --pixel-display: "PixelDisplay", "PlexMonoLocal", ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
   --radius: 0px;
   --corner-cut: 8px;
   --border-w: 1px;
@@ -54,21 +79,21 @@
 }
 
 :root[data-visual-style="pixel"] {
-  --bg: #131625;
-  --panel: #1d2140;
-  --line: #596093;
-  --outline: #0a0b14;
-  --ink: #eef1ff;
-  --ink-soft: #b2b6dd;
-  --accent: #ffcf5c;
-  --energy: #ffcf5c;
-  --danger: #ff5d5d;
-  --status-corrosion: #6bff9e;
-  --status-overdrive: #ffcf5c;
-  --status-stabilization: #7fd1ff;
-  --status-jamming: #c69ae5;
-  --status-breach: #ff5d5d;
-  --status-reflect: #ff8fd0;
+  --bg: #05070b;
+  --panel: #101722;
+  --line: #53666c;
+  --outline: #020305;
+  --ink: #eee8d8;
+  --ink-soft: #9db0b2;
+  --accent: #d6aa55;
+  --energy: #a9dc47;
+  --danger: #df476d;
+  --status-corrosion: #a9dc47;
+  --status-overdrive: #e2b855;
+  --status-stabilization: #43bfd0;
+  --status-jamming: #aa4f8a;
+  --status-breach: #e75b69;
+  --status-reflect: #e59fc3;
   --outline-w: 3px;
 }
 
@@ -113,6 +138,25 @@ button:focus-visible {
   height: 1em;
   flex: 0 0 auto;
   vertical-align: -0.14em;
+}
+
+.status-icon-stack,
+.map-icon-stack {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 1em;
+  height: 1em;
+}
+
+.status-icon-line,
+.map-icon-line {
+  display: inline-block;
+}
+
+.status-icon-pixel,
+.map-icon-pixel {
+  display: none;
 }
 
 .protocol-type,
@@ -231,6 +275,16 @@ button:focus-visible {
 :root[data-visual-style="pixel"] .credits-bar small .game-icon,
 :root[data-visual-style="pixel"] .vital-label .game-icon {
   display: none;
+}
+
+:root[data-visual-style="pixel"] .status-icon-line,
+:root[data-visual-style="pixel"] .map-icon-line {
+  display: none;
+}
+
+:root[data-visual-style="pixel"] .status-icon-pixel,
+:root[data-visual-style="pixel"] .map-icon-pixel {
+  display: inline-block;
 }
 
 @media (max-width: 40rem) {

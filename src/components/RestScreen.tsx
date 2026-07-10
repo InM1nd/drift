@@ -1,6 +1,6 @@
 import { useRunStore } from "../state/runStore";
 import { getCardById, getUpgradedCardId } from "../data/cards";
-import { HudRoomBackdrop } from "./HudRoomBackdrop";
+import { RoomBackdrop } from "./RoomBackdrop";
 import { HullIcon } from "./icons";
 import { ProtocolIcon } from "./ProtocolIcon";
 import { ScreenHeader } from "./ScreenHeader";
@@ -38,7 +38,7 @@ export function RestScreen() {
 
   return (
     <div className="screen-layout rest-screen">
-      <HudRoomBackdrop kind="rest" />
+      <RoomBackdrop kind="rest" />
       <ScreenHeader
         code="SERVICE // MAINTENANCE"
         title="Ремонтный отсек"
