@@ -97,10 +97,15 @@ export function generateMap(rng: RngState): GeneratedMap {
   }
 
   // Гарантия: хотя бы один Терминал снабжения и один Ремонтный отсек до Стража.
+  // Кандидаты на перезапись исключают любой узел, уже несущий shop или rest —
+  // не только те, что назначила эта же итерация: без этого "rest" мог откатить
+  // натурально выпавший (не форсированный) "shop" на том же узле и обнулить
+  // гарантию (реальный баг, ловился флейки-тестом на Date.now()-сиде).
   const midNodesFlat = midLayers.flat();
   for (const requiredType of ["shop", "rest"] as const) {
     if (!midNodesFlat.some((n) => n.type === requiredType)) {
-      const target = midNodesFlat[pickIndex(rng, midNodesFlat.length)];
+      const candidates = midNodesFlat.filter((n) => n.type !== "shop" && n.type !== "rest");
+      const target = candidates[pickIndex(rng, candidates.length)];
       target.type = requiredType;
       target.label = NODE_LABELS[requiredType];
       target.enemyIds = undefined;
