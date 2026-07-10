@@ -1,4 +1,5 @@
 import { useState } from "react";
+import driftLogo from "../assets/brand/drift-logo.png";
 import { RoomBackdrop } from "./RoomBackdrop";
 import { SettingsPanel } from "./SettingsPanel";
 import "./ScreenLayout.css";
@@ -27,7 +28,10 @@ export function StartScreen({ canContinue, savedSummary, threatLevelsUnlocked, o
   return (
     <div className="screen-layout start-screen">
       <RoomBackdrop kind="map" />
-      <h1 className="start-screen-title">ДРЕЙФ</h1>
+      <h1 className="brand-title">
+        <img className="brand-logo" src={driftLogo} alt="dRift" />
+        <span>dRift</span>
+      </h1>
 
       {view === "settings" ? (
         <>

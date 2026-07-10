@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'DRIFT',
-        short_name: 'DRIFT',
+        name: 'dRift',
+        short_name: 'dRift',
         description: 'Пиксельный карточный roguelike-декбилдинг',
         lang: 'ru',
         theme_color: '#0b0e14',

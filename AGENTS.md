@@ -1,4 +1,4 @@
-# AGENTS.md — ДРЕЙФ (battle-novel)
+# AGENTS.md — dRift (battle-novel)
 
 Canonical rules for any agent working in this repo (Claude Code, Cursor, Codex, or human). This file is the single source of truth for cross-cutting conventions — do not fork these rules into a tool-specific file; tool configs should import/reference this one instead of restating it.
 
