@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useRunStore } from "../state/runStore";
 import { useMetaStore } from "../state/metaStore";
-import { HudRoomBackdrop } from "./HudRoomBackdrop";
+import { GameMenu } from "./GameMenu";
+import { RoomBackdrop } from "./RoomBackdrop";
 import { ScreenHeader } from "./ScreenHeader";
 import "./ScreenLayout.css";
 
@@ -20,7 +21,7 @@ export function RunEndScreen() {
 
   return (
     <div className={`screen-layout run-end-screen outcome-banner ${victory ? "victory" : "defeat"}`}>
-      <HudRoomBackdrop kind="run-end" seed={victory ? "victory" : "defeat"} />
+      <RoomBackdrop kind="run-end" seed={victory ? "victory" : "defeat"} />
       <ScreenHeader code="RUN // SUMMARY" title={victory ? "Забег пройден" : "Забег окончен"} />
       <p className="screen-hint">
         {victory ? "Ядро-Страж уничтожено." : "Ныряльщик выведен из строя."} Текущий уровень угрозы: <strong>T{threatLevel}</strong>.
@@ -49,6 +50,8 @@ export function RunEndScreen() {
       <button type="button" className="primary-button" onClick={() => startNewRun(nextThreat)}>
         Новый забег
       </button>
+
+      <GameMenu />
     </div>
   );
 }

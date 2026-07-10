@@ -5,17 +5,45 @@ import {
   CorrosionIcon,
   JammingIcon,
   OverdriveIcon,
+  PixelBreachGlyph,
+  PixelCorrosionGlyph,
+  PixelJammingGlyph,
+  PixelOverdriveGlyph,
+  PixelReflectGlyph,
+  PixelStabilizationGlyph,
   ReflectIcon,
   StabilizationIcon,
 } from "./icons";
 
+function statusIconPair(LineIcon: () => ReactNode, PixelIcon: () => ReactNode) {
+  return createElement("span", { className: "status-icon-stack" }, LineIcon(), PixelIcon());
+}
+
 export const STATUS_ICONS: Record<Status, ReactNode> = {
-  corrosion: createElement(CorrosionIcon, { className: "status-icon" }),
-  overdrive: createElement(OverdriveIcon, { className: "status-icon" }),
-  stabilization: createElement(StabilizationIcon, { className: "status-icon" }),
-  jamming: createElement(JammingIcon, { className: "status-icon" }),
-  breach: createElement(BreachIcon, { className: "status-icon" }),
-  reflect: createElement(ReflectIcon, { className: "status-icon" }),
+  corrosion: statusIconPair(
+    () => createElement(CorrosionIcon, { className: "status-icon status-icon-line" }),
+    () => createElement(PixelCorrosionGlyph, { className: "status-icon status-icon-pixel" }),
+  ),
+  overdrive: statusIconPair(
+    () => createElement(OverdriveIcon, { className: "status-icon status-icon-line" }),
+    () => createElement(PixelOverdriveGlyph, { className: "status-icon status-icon-pixel" }),
+  ),
+  stabilization: statusIconPair(
+    () => createElement(StabilizationIcon, { className: "status-icon status-icon-line" }),
+    () => createElement(PixelStabilizationGlyph, { className: "status-icon status-icon-pixel" }),
+  ),
+  jamming: statusIconPair(
+    () => createElement(JammingIcon, { className: "status-icon status-icon-line" }),
+    () => createElement(PixelJammingGlyph, { className: "status-icon status-icon-pixel" }),
+  ),
+  breach: statusIconPair(
+    () => createElement(BreachIcon, { className: "status-icon status-icon-line" }),
+    () => createElement(PixelBreachGlyph, { className: "status-icon status-icon-pixel" }),
+  ),
+  reflect: statusIconPair(
+    () => createElement(ReflectIcon, { className: "status-icon status-icon-line" }),
+    () => createElement(PixelReflectGlyph, { className: "status-icon status-icon-pixel" }),
+  ),
 };
 
 export const STATUS_LABELS: Record<Status, string> = {

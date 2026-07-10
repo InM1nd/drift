@@ -1,0 +1,16 @@
+.start-screen {
+  justify-content: center;
+  text-align: center;
+}
+
+.start-screen-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: min(100%, 20rem);
+}
+
+.start-screen .settings-panel {
+  width: min(100%, 24rem);
+  text-align: left;
+}

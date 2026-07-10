@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { get as idbGet } from "idb-keyval";
 import { useRunStore, RUN_SAVE_KEY } from "./state/runStore";
 import { useMetaStore } from "./state/metaStore";
+import { useSettingsStore } from "./state/settingsStore";
 import { MapScreen } from "./components/MapScreen";
 import { CombatScreen } from "./components/CombatScreen";
 import { RewardScreen } from "./components/RewardScreen";
@@ -9,34 +10,23 @@ import { ShopScreen } from "./components/ShopScreen";
 import { RestScreen } from "./components/RestScreen";
 import { EventScreen } from "./components/EventScreen";
 import { RunEndScreen } from "./components/RunEndScreen";
+import { StartScreen, type SavedRunSummary } from "./components/StartScreen";
 import { SystemNotice } from "./components/SystemNotice";
 import { playUiCue } from "./audio/uiCues";
-import { VisualStyleSwitch, type VisualStyle } from "./components/VisualStyleSwitch";
-import driftLogo from "./assets/brand/drift-logo.png";
 import "./components/ScreenLayout.css";
 
-type BootState = "checking" | "askContinue" | "ready";
-type SavedRunSummary = {
-  hp: number;
-  maxHp: number;
-  credits: number;
-  deckSize: number;
-  nodeLabel: string;
-};
+type BootState = "checking" | "start" | "ready";
 
 function App() {
   const [bootState, setBootState] = useState<BootState>("checking");
   const [savedSummary, setSavedSummary] = useState<SavedRunSummary | null>(null);
-  const [selectedThreat, setSelectedThreat] = useState<number>(0);
-  const [visualStyle, setVisualStyle] = useState<VisualStyle>(() => {
-    const savedStyle = window.localStorage.getItem("drift-visual-style");
-    return savedStyle === "pixel" ? "pixel" : "hud";
-  });
   const screen = useRunStore((s) => s.screen);
   const notice = useRunStore((s) => s.uiNotice);
   const clearNotice = useRunStore((s) => s.clearUiNotice);
   const threatLevelsUnlocked = useMetaStore((s) => s.threatLevelsUnlocked);
-  const showVisualSwitch = import.meta.env.DEV;
+  const visualStyle = useSettingsStore((s) => s.visualStyle);
+  const atTitle = useSettingsStore((s) => s.atTitle);
+  const setAtTitle = useSettingsStore((s) => s.setAtTitle);
 
   useEffect(() => {
     useMetaStore.persist.rehydrate();
@@ -58,19 +48,14 @@ function App() {
         } catch {
           setSavedSummary(null);
         }
-        setBootState("askContinue");
-      } else {
-        useRunStore.getState().startNewRun(0);
-        setBootState("ready");
       }
+      setBootState("start");
     });
   }, []);
 
   useEffect(() => {
     document.documentElement.dataset.visualStyle = visualStyle;
-    document.documentElement.dataset.styleSwitch = showVisualSwitch ? "on" : "off";
-    window.localStorage.setItem("drift-visual-style", visualStyle);
-  }, [showVisualSwitch, visualStyle]);
+  }, [visualStyle]);
 
   useEffect(() => {
     if (!notice) return;
@@ -83,66 +68,33 @@ function App() {
     return () => window.clearTimeout(timeout);
   }, [clearNotice, notice]);
 
+  async function handleContinue() {
+    if (bootState !== "ready") {
+      await useRunStore.persist.rehydrate();
+      await useMetaStore.persist.rehydrate();
+      setBootState("ready");
+    }
+    setAtTitle(false);
+  }
+
+  function handleNewRun(threatLevel: number) {
+    useRunStore.getState().startNewRun(threatLevel);
+    setBootState("ready");
+    setAtTitle(false);
+  }
+
   let content: ReactNode;
   if (bootState === "checking") {
     content = <div className="screen-layout">Загрузка…</div>;
-  } else if (bootState === "askContinue") {
+  } else if (bootState !== "ready" || atTitle) {
     content = (
-      <div className="screen-layout">
-        <h1 className="brand-title">
-          <img className="brand-logo" src={driftLogo} alt="dRift" />
-          <span>dRift</span>
-        </h1>
-        <p className="screen-hint">Найден сохранённый забег.</p>
-        {savedSummary ? (
-          <p className="screen-hint">
-            Сектор <strong>{savedSummary.nodeLabel}</strong> · Корпус <strong>{savedSummary.hp}/{savedSummary.maxHp}</strong> ·
-            Кредиты <strong>₡ {savedSummary.credits}</strong> · Протоколы <strong>{savedSummary.deckSize}</strong>
-          </p>
-        ) : null}
-        <div className="rest-choices">
-          <div className="rest-choice">
-            <div className="card-name">Уровень угрозы</div>
-            <div className="card-desc">
-              {threatLevelsUnlocked ? "Выбери интенсивность системной нагрузки." : "Разблокируется после победы над Ядром-Стражем."}
-            </div>
-            <div className="deck-list">
-              {(threatLevelsUnlocked ? [0, 1, 2, 3, 4, 5] : [0]).map((level) => (
-                <button
-                  aria-pressed={selectedThreat === level}
-                  className={`threat-option${selectedThreat === level ? " active" : ""}`}
-                  key={level}
-                  onClick={() => setSelectedThreat(level)}
-                  type="button"
-                >
-                  T{level}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-        <button
-          type="button"
-          className="primary-button"
-          onClick={async () => {
-            await useRunStore.persist.rehydrate();
-            await useMetaStore.persist.rehydrate();
-            setBootState("ready");
-          }}
-        >
-          Продолжить забег
-        </button>
-        <button
-          type="button"
-          className="secondary-button"
-          onClick={() => {
-            useRunStore.getState().startNewRun(selectedThreat);
-            setBootState("ready");
-          }}
-        >
-          Новый забег
-        </button>
-      </div>
+      <StartScreen
+        canContinue={bootState === "ready" || savedSummary !== null}
+        onContinue={handleContinue}
+        onNewRun={handleNewRun}
+        savedSummary={savedSummary}
+        threatLevelsUnlocked={threatLevelsUnlocked}
+      />
     );
   } else {
     switch (screen) {
@@ -173,7 +125,6 @@ function App() {
 
   return (
     <>
-      {showVisualSwitch ? <VisualStyleSwitch onChange={setVisualStyle} style={visualStyle} /> : null}
       {content}
       {notice ? (
         <SystemNotice

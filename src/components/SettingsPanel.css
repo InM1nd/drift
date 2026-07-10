@@ -1,0 +1,23 @@
+.settings-panel {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+}
+
+.settings-section {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.settings-label {
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.settings-panel .visual-style-switch {
+  align-self: start;
+}
