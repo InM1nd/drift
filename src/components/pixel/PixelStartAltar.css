@@ -1,0 +1,283 @@
+.pixel-start-screen {
+  min-height: 100dvh;
+  justify-content: center;
+  padding: max(0.5rem, env(safe-area-inset-top)) 0.75rem max(1rem, env(safe-area-inset-bottom));
+}
+
+.pixel-altar-title {
+  width: min(100%, 38rem);
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  color: var(--relic-bone);
+  font-family: var(--mono);
+}
+
+.pixel-altar-crest {
+  z-index: 1;
+  width: min(100%, 30rem);
+  margin-bottom: -1.5rem;
+  filter: drop-shadow(0 0.5rem 0 var(--relic-bg));
+}
+
+.screen-layout .pixel-altar-crest h1 {
+  width: 100%;
+  overflow: visible;
+}
+
+.pixel-altar-logo {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+
+.pixel-altar-niche {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 30rem);
+  padding: 3.25rem clamp(2.25rem, 8vw, 3.5rem) 2.75rem;
+  border: 0;
+  background: transparent;
+}
+
+.pixel-altar-niche::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border: 3rem solid transparent;
+  border-image: url("../../assets/pixel/menu-frame-slice.png") 128 / 3.25rem / 0 round;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.pixel-altar-niche::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  background:
+    url("../../assets/pixel/menu-frame-top-medallion.png") center top / auto 3.25rem no-repeat,
+    url("../../assets/pixel/menu-frame-bottom-medallion.png") center bottom / auto 3.25rem no-repeat;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.pixel-altar-niche > * {
+  position: relative;
+  z-index: 3;
+}
+
+.pixel-altar-record {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
+  min-height: 3.5rem;
+  padding: 0.55rem 2.75rem;
+  border: 0;
+  background:
+    url("../../assets/pixel/menu-button-left.png") left center / auto 100% no-repeat,
+    url("../../assets/pixel/menu-button-right.png") right center / auto 100% no-repeat,
+    url("../../assets/pixel/menu-button-repeat.png") center / auto 100% repeat-x,
+    transparent;
+  image-rendering: pixelated;
+  text-align: left;
+}
+
+.pixel-altar-record .pixel-altar-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.pixel-altar-record > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.pixel-altar-record span {
+  color: var(--relic-bone-soft);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+}
+
+.pixel-altar-record strong {
+  color: var(--relic-bone);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.pixel-altar-threat {
+  margin: 0 0 0.9rem;
+  padding: 0;
+  border: 0;
+}
+
+.pixel-altar-threat legend {
+  width: 100%;
+  margin-bottom: 0.5rem;
+  color: var(--relic-bone-soft);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-align: center;
+}
+
+.pixel-altar-threat > div {
+  display: flex;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.pixel-altar-threat button {
+  position: relative;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--relic-bone-soft);
+  font-family: var(--pixel-display);
+  font-size: 0.72rem;
+}
+
+.pixel-altar-threat button::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: -0.25rem;
+  background: url("../../assets/pixel/menu-threat-seal.png") center / 100% 100% no-repeat;
+  image-rendering: pixelated;
+  opacity: 0.58;
+  pointer-events: none;
+}
+
+.pixel-altar-threat button span {
+  position: relative;
+  z-index: 1;
+}
+
+.pixel-altar-threat button[aria-pressed="true"] {
+  background: transparent;
+  color: var(--relic-bone);
+}
+
+.pixel-altar-threat button[aria-pressed="true"]::before {
+  opacity: 1;
+}
+
+.pixel-altar-threat button[aria-pressed="true"]::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  right: 0.25rem;
+  bottom: 0.25rem;
+  left: 0.25rem;
+  height: 3px;
+  background: var(--relic-cyan);
+}
+
+.pixel-altar-threat small {
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--relic-bone-soft);
+  font-size: 0.55rem;
+  text-align: center;
+}
+
+.pixel-altar-actions {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.pixel-altar-action {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) 1.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3.5rem;
+  padding: 0.55rem 2.75rem;
+  border: 0;
+  background:
+    url("../../assets/pixel/menu-button-left.png") left center / auto 100% no-repeat,
+    url("../../assets/pixel/menu-button-right.png") right center / auto 100% no-repeat,
+    url("../../assets/pixel/menu-button-repeat.png") center / auto 100% repeat-x,
+    transparent;
+  color: var(--relic-bone);
+  font-family: var(--pixel-display);
+  font-size: 0.74rem;
+  letter-spacing: 0.07em;
+  image-rendering: pixelated;
+}
+
+.pixel-altar-action .pixel-altar-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.pixel-altar-icon {
+  display: block;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.pixel-altar-action span {
+  grid-column: 2;
+}
+
+.pixel-altar-action-primary {
+  background-color: transparent;
+  color: var(--relic-bone);
+  filter: brightness(1.16);
+}
+
+.pixel-altar-action-quiet {
+  color: var(--relic-bone-soft);
+}
+
+.pixel-altar-title button:focus-visible {
+  outline: 3px solid var(--relic-cyan);
+  outline-offset: 2px;
+}
+
+@media (max-width: 430px) {
+  .pixel-start-screen {
+    justify-content: flex-start;
+  }
+
+  .pixel-altar-title {
+    min-height: calc(100dvh - 1.5rem);
+  }
+
+  .pixel-altar-crest {
+    margin-top: -0.75rem;
+    margin-bottom: -1rem;
+  }
+
+  .pixel-altar-niche {
+    padding-top: 2.2rem;
+  }
+
+  .pixel-altar-threat > div {
+    gap: 0.2rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pixel-altar-title button {
+    transition:
+      filter 90ms steps(2),
+      transform 90ms steps(2);
+  }
+
+  .pixel-altar-title button:hover {
+    filter: brightness(1.14);
+    transform: translateY(-2px);
+  }
+
+  .pixel-altar-title button:active {
+    transform: translateY(1px);
+  }
+}

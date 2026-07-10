@@ -1,15 +1,4 @@
 @font-face {
-  font-family: "PixelDisplay";
-  src:
-    url("./assets/fonts/dotgothic16-cyrillic-400-normal.woff2") format("woff2"),
-    url("./assets/fonts/dotgothic16-latin-ext-400-normal.woff2") format("woff2"),
-    url("./assets/fonts/dotgothic16-latin-400-normal.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-}
-
-@font-face {
   font-family: "PlexMonoLocal";
   src:
     url("./assets/fonts/ibm-plex-mono-cyrillic-ext-400-normal.woff2") format("woff2"),
@@ -40,7 +29,7 @@
   --corrosion: var(--status-corrosion);
   --sans: var(--mono);
   --mono: "PlexMonoLocal", ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
-  --pixel-display: "PixelDisplay", "PlexMonoLocal", ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  --pixel-display: "Russo One", "PlexMonoLocal", ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
   --radius: 0px;
   --corner-cut: 8px;
   --border-w: 1px;
@@ -88,6 +77,15 @@
   --status-jamming: #aa4f8a;
   --status-breach: #e75b69;
   --status-reflect: #e59fc3;
+  --relic-bg: #050d16;
+  --relic-panel: #0e1117;
+  --relic-raised: #1b2125;
+  --relic-line: #3e3c32;
+  --relic-bronze: #716146;
+  --relic-bronze-bright: #9a865f;
+  --relic-bone: #d1c7ad;
+  --relic-bone-soft: #827f70;
+  --relic-cyan: #347f88;
   --outline-w: 3px;
 }
 

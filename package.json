@@ -11,8 +11,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@fontsource/dotgothic16": "^5.2.8",
     "@fontsource/ibm-plex-mono": "^5.2.7",
+    "@fontsource/russo-one": "^5.2.7",
     "@xstate/react": "^6.1.0",
     "framer-motion": "^12.42.2",
     "idb-keyval": "^6.3.0",

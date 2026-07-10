@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useRunStore } from "../state/runStore";
+import { useSettingsStore } from "../state/settingsStore";
 import { getMapNodeById } from "../data/mapNodes";
 import { GameMenu } from "./GameMenu";
 import { RoomBackdrop } from "./RoomBackdrop";
 import { CreditsIcon, HullIcon, ThreatIcon } from "./icons";
 import { NODE_ICONS } from "./mapIcons";
 import { ScreenHeader } from "./ScreenHeader";
+import { PixelMapLayout } from "./pixel/PixelMapLayout";
 import "./ScreenLayout.css";
 
 const NODE_TYPE_LABELS: Record<string, string> = {
@@ -31,6 +33,7 @@ export function MapScreen() {
   const threatLevel = useRunStore((s) => s.threatLevel);
   const enterNode = useRunStore((s) => s.enterNode);
   const choose = useRunStore((s) => s.choose);
+  const visualStyle = useSettingsStore((s) => s.visualStyle);
   const [showBranchHint, setShowBranchHint] = useState(false);
 
   const currentNode = getMapNodeById(mapNodes, currentNodeId);
@@ -45,6 +48,34 @@ export function MapScreen() {
     setShowBranchHint(true);
     window.localStorage.setItem("drift-hint-branch-seen", "1");
   }, [awaitingChoice]);
+
+  if (visualStyle === "pixel") {
+    return (
+      <>
+        <PixelMapLayout
+          awaitingChoice={awaitingChoice}
+          credits={credits}
+          currentLayerIndex={currentLayerIndex}
+          currentNode={currentNode}
+          currentNodeId={currentNodeId}
+          deckSize={deckSize}
+          displayLayers={displayLayers}
+          injectorCount={injectorCount}
+          mapNodes={mapNodes}
+          moduleCount={moduleCount}
+          onChoose={choose}
+          onEnterNode={enterNode}
+          playerHp={playerHp}
+          playerMaxHp={playerMaxHp}
+          resolvedNodeIds={resolvedNodeIds}
+          showBranchHint={showBranchHint}
+          threatLevel={threatLevel}
+          title="dRift · Остов «Хорда»"
+        />
+        <GameMenu />
+      </>
+    );
+  }
 
   return (
     <div className="screen-layout map-screen">

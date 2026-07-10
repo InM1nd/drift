@@ -9,6 +9,7 @@ import { getCardById } from "../data/cards";
 import { getInjectorById } from "../data/injectors";
 import { getMapNodeById } from "../data/mapNodes";
 import { useRunStore } from "../state/runStore";
+import { useSettingsStore } from "../state/settingsStore";
 import { EnemySprite, PlayerSprite } from "./CombatSprite";
 import { CardEffectSummary, EffectLegend } from "./CardEffectSummary";
 import { GameMenu } from "./GameMenu";
@@ -28,6 +29,7 @@ import {
 import { ProtocolIcon } from "./ProtocolIcon";
 import { StatusChips } from "./StatusChips";
 import { STATUS_ICONS } from "./statusIcons";
+import { PixelCombatLayout } from "./pixel/PixelCombatLayout";
 import "./CombatScreen.css";
 
 const PHASE_LABELS: Record<string, string> = {
@@ -85,6 +87,7 @@ function intentFor(enemy: EnemyCombatantState, combat: CombatState): { icon: Rea
 
 export function CombatScreen() {
   const node = useRunStore((s) => getMapNodeById(s.mapNodes, s.currentNodeId));
+  const visualStyle = useSettingsStore((s) => s.visualStyle);
   const deck = useRunStore((s) => s.deck);
   const playerHp = useRunStore((s) => s.player.hp);
   const playerMaxHp = useRunStore((s) => s.player.maxHp);
@@ -205,6 +208,44 @@ export function CombatScreen() {
     }
     setInspectedCardIndex(null);
     handleSelectCard(index);
+  }
+
+  if (visualStyle === "pixel") {
+    return (
+      <>
+        <PixelCombatLayout
+          cardEffectiveCost={cardEffectiveCost}
+          combat={combat}
+          combatNotice={combatNotice}
+          injectorGlyphKind={injectorGlyphKind}
+          inspectedCardIndex={inspectedCardIndex}
+          intentForEnemy={intentFor}
+          isPlayerTurn={isPlayerTurn}
+          lowHull={lowHull}
+          nodeLabel={node.label}
+          nodeSeed={node.id}
+          nodeType={node.type}
+          onCardActivate={handleCardActivate}
+          onCardBlur={() => {
+            if (!usesTouchInspection()) setInspectedCardIndex(null);
+          }}
+          onCardFocus={(index) => {
+            if (!usesTouchInspection()) setInspectedCardIndex(index);
+          }}
+          onCardMouseEnter={(index) => setInspectedCardIndex(index)}
+          onCardMouseLeave={() => setInspectedCardIndex(null)}
+          onEndTurn={() => send({ type: "END_TURN" })}
+          onResolve={handleResolved}
+          onSelectInjector={(index) => send({ type: "SELECT_INJECTOR", index })}
+          onTargetEnemy={(index) => send({ type: "TARGET_ENEMY", index })}
+          phaseLabel={phaseLabel}
+          selectedAction={selectedAction}
+          stateValue={String(state.value)}
+          targetingActive={targetingActive}
+        />
+        <GameMenu devTools={{ combat, send }} />
+      </>
+    );
   }
 
   return (

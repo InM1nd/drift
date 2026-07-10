@@ -70,10 +70,6 @@
   display: none;
 }
 
-.brand-title span {
-  display: none;
-}
-
 .screen-header-aside {
   color: var(--ink);
   font-family: var(--mono);
@@ -757,8 +753,7 @@
 }
 
 :root[data-visual-style="pixel"] .brand-title {
-  display: grid;
-  place-items: center;
+  display: block;
   width: min(100%, 30rem);
   overflow: visible;
   text-overflow: clip;
@@ -770,29 +765,9 @@
 
 :root[data-visual-style="pixel"] .brand-logo-pixel {
   display: block;
-  grid-area: 1 / 1;
   width: 100%;
   height: auto;
   image-rendering: pixelated;
-}
-
-:root[data-visual-style="pixel"] .brand-title span {
-  position: relative;
-  display: block;
-  z-index: 1;
-  grid-area: 1 / 1;
-  color: var(--ink);
-  font-size: clamp(1.35rem, 7vw, 2.3rem);
-  line-height: 1;
-  letter-spacing: 0.08em;
-  text-transform: none;
-  transform: translateY(0.18rem);
-  text-shadow:
-    var(--outline-w) 0 var(--outline),
-    calc(-1 * var(--outline-w)) 0 var(--outline),
-    0 var(--outline-w) var(--outline),
-    0 calc(-1 * var(--outline-w)) var(--outline),
-    var(--outline-w) var(--outline-w) var(--outline);
 }
 
 :root[data-visual-style="pixel"] .screen-kicker {

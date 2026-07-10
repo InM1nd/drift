@@ -1,8 +1,10 @@
 import { useState } from "react";
 import driftLogo from "../assets/brand/drift-logo.png";
 import driftPixelLogo from "../assets/brand/drift-logo-pixel.png";
+import { useSettingsStore } from "../state/settingsStore";
 import { RoomBackdrop } from "./RoomBackdrop";
 import { SettingsPanel } from "./SettingsPanel";
+import { PixelStartLayout } from "./pixel/PixelStartLayout";
 import "./ScreenLayout.css";
 import "./StartScreen.css";
 
@@ -25,14 +27,29 @@ interface StartScreenProps {
 export function StartScreen({ canContinue, savedSummary, threatLevelsUnlocked, onContinue, onNewRun }: StartScreenProps) {
   const [selectedThreat, setSelectedThreat] = useState(0);
   const [view, setView] = useState<"menu" | "settings">("menu");
+  const visualStyle = useSettingsStore((s) => s.visualStyle);
+
+  if (view === "menu" && visualStyle === "pixel") {
+    return (
+      <PixelStartLayout
+        canContinue={canContinue}
+        onContinue={onContinue}
+        onNewRun={() => onNewRun(selectedThreat)}
+        onOpenSettings={() => setView("settings")}
+        onSelectThreat={setSelectedThreat}
+        savedSummary={savedSummary}
+        selectedThreat={selectedThreat}
+        threatLevelsUnlocked={threatLevelsUnlocked}
+      />
+    );
+  }
 
   return (
     <div className="screen-layout start-screen">
       <RoomBackdrop kind="map" />
       <h1 className="brand-title">
         <img className="brand-logo" src={driftLogo} alt="dRift" />
-        <img aria-hidden="true" className="brand-logo-pixel" src={driftPixelLogo} alt="" />
-        <span>dRift</span>
+        <img className="brand-logo-pixel" src={driftPixelLogo} alt="dRift" />
       </h1>
 
       {view === "settings" ? (

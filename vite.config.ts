@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.png', 'favicon.ico'],
       manifest: {
         name: 'dRift',
         short_name: 'dRift',
